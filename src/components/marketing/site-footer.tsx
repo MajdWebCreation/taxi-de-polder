@@ -1,5 +1,12 @@
 import Image from "next/image";
 import { Check } from "lucide-react";
+import {
+  SITE_EMAIL,
+  SITE_KVK,
+  SITE_PHONE_DISPLAY,
+  SITE_PHONE_TEL,
+  SITE_WHATSAPP_URL,
+} from "@/lib/site";
 
 export function SiteFooter() {
   return (
@@ -28,18 +35,26 @@ export function SiteFooter() {
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-white/80">Contact</p>
           <div className="mt-5 space-y-3 text-base text-white/90">
-            <a href="tel:0644445501" className="block transition hover:text-[#f4c542]">
-              +31 6 44445501
+            <a
+              href={`tel:${SITE_PHONE_TEL}`}
+              className="block transition hover:text-[#f4c542]"
+            >
+              {SITE_PHONE_DISPLAY}
             </a>
-            <p>info@taxidepolder.nl</p>
+            <p>{SITE_EMAIL}</p>
           </div>
         </div>
 
         <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-white/80">Openingstijden</p>
-          <div className="mt-5 flex items-center gap-2 text-base text-white/90">
-            <Check className="h-4 w-4 text-sky-300" />
-            <span>24/7</span>
+          <p className="text-sm uppercase tracking-[0.2em] text-white/80">
+            Bedrijfsinfo
+          </p>
+          <div className="mt-5 space-y-3 text-base text-white/90">
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-sky-300" />
+              <span>24/7</span>
+            </div>
+            <p>KvK: {SITE_KVK}</p>
           </div>
         </div>
 
@@ -50,7 +65,7 @@ export function SiteFooter() {
           </p>
 
           <a
-            href="https://wa.me/31644445501"
+            href={SITE_WHATSAPP_URL}
             target="_blank"
             rel="noreferrer"
             className="mt-6 inline-flex rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"

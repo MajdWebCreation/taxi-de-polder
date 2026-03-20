@@ -1,4 +1,21 @@
+import type { Metadata } from "next";
 import { AdminLoginForm } from "@/components/admin/admin-login-form";
+
+export const metadata: Metadata = {
+  title: "Admin login",
+  description: "Beheerpaneel login voor Taxi De Polder.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      "max-image-preview": "none",
+      "max-snippet": 0,
+      "max-video-preview": 0,
+    },
+  },
+};
 
 export default function AdminLoginPage() {
   return (

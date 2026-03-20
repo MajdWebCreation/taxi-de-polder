@@ -1,8 +1,25 @@
+import type { Metadata } from "next";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminPricingPanel } from "@/components/admin/admin-pricing-panel";
 import { AdminSignOutButton } from "@/components/admin/admin-sign-out-button";
 import { requireAdmin } from "@/features/auth/require-admin";
 import type { PricingSettingRecord, SpecialRate } from "@/types/pricing";
+
+export const metadata: Metadata = {
+  title: "Admin tarieven",
+  description: "Beheer tarieven voor Taxi De Polder.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      "max-image-preview": "none",
+      "max-snippet": 0,
+      "max-video-preview": 0,
+    },
+  },
+};
 
 export default async function AdminPricingPage() {
   const { supabase, user } = await requireAdmin();

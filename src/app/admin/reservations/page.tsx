@@ -1,8 +1,25 @@
+import type { Metadata } from "next";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminReservationsPanel } from "@/components/admin/admin-reservations-panel";
 import { AdminSignOutButton } from "@/components/admin/admin-sign-out-button";
 import { requireAdmin } from "@/features/auth/require-admin";
 import type { ReservationRecord } from "@/types/reservations";
+
+export const metadata: Metadata = {
+  title: "Admin reserveringen",
+  description: "Beheer reserveringen voor Taxi De Polder.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      "max-image-preview": "none",
+      "max-snippet": 0,
+      "max-video-preview": 0,
+    },
+  },
+};
 
 export default async function AdminReservationsPage() {
   const { supabase, user } = await requireAdmin();

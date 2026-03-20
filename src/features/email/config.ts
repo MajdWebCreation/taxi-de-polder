@@ -1,7 +1,9 @@
-const DEFAULT_RESERVATION_EMAIL = "m.hammid2004@gmail.com";
+import { SITE_EMAIL, SITE_URL } from "@/lib/site";
+
+const DEFAULT_RESERVATION_EMAIL = SITE_EMAIL;
 const DEFAULT_FROM_EMAIL =
   "Taxi De Polder <reserveringen@notify.taxidepolder.nl>";
-const DEFAULT_APP_URL = "https://www.taxidepolder.nl";
+const DEFAULT_APP_URL = SITE_URL;
 
 function getTrimmedEnv(name: string) {
   return process.env[name]?.trim();
