@@ -1,3 +1,9 @@
+import {
+  getGoogleApiErrorMessage,
+  getGoogleMapsServerApiKey,
+  GoogleApiError,
+} from "@/lib/google-env";
+
 export type RouteQuoteResult = {
   distanceMeters: number;
   durationSeconds: number;
@@ -25,12 +31,8 @@ function formatDuration(seconds: number): string {
 export async function getRouteQuoteFromGoogle(params: {
   origin: string;
   destination: string;
-}) : Promise<RouteQuoteResult> {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("GOOGLE_MAPS_API_KEY ontbreekt");
-  }
+}): Promise<RouteQuoteResult> {
+  const apiKey = getGoogleMapsServerApiKey();
 
   const response = await fetch(
     "https://routes.googleapis.com/directions/v2:computeRoutes",
@@ -58,14 +60,24 @@ export async function getRouteQuoteFromGoogle(params: {
   );
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Google Routes API fout: ${response.status} ${errorText}`);
+    throw new GoogleApiError(
+      await getGoogleApiErrorMessage(response, "Google Routes API"),
+      response.status
+    );
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as {
+    routes?: Array<{
+      distanceMeters?: number | string;
+      duration?: string;
+    }>;
+  };
 
   if (!data.routes || !Array.isArray(data.routes) || data.routes.length === 0) {
-    throw new Error("Geen route gevonden");
+    throw new GoogleApiError(
+      "Google Routes API gaf geen route terug voor deze rit.",
+      502
+    );
   }
 
   const route = data.routes[0];

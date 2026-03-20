@@ -1,4 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  getErrorMessage,
+  getErrorStatus,
+  getGoogleApiErrorMessage,
+  getGoogleMapsServerApiKey,
+  GoogleApiError,
+} from "@/lib/google-env";
 
 type Suggestion = {
   placeId: string;
@@ -26,16 +33,12 @@ type MappedSuggestion = Suggestion | null;
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    const apiKey = getGoogleMapsServerApiKey();
 
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "GOOGLE_MAPS_API_KEY ontbreekt." },
-        { status: 500 }
-      );
-    }
-
-    const body = await request.json();
+    const body = (await request.json()) as {
+      input?: unknown;
+      sessionToken?: unknown;
+    };
     const input = String(body.input ?? "").trim();
     const sessionToken = String(body.sessionToken ?? "").trim();
 
@@ -62,10 +65,9 @@ export async function POST(request: NextRequest) {
     );
 
     if (!response.ok) {
-      const errorText = await response.text();
-      return NextResponse.json(
-        { error: `Google Places fout: ${response.status} ${errorText}` },
-        { status: 500 }
+      throw new GoogleApiError(
+        await getGoogleApiErrorMessage(response, "Google Places API"),
+        response.status
       );
     }
 
@@ -97,9 +99,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ suggestions });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Onbekende fout bij autocomplete";
+    const message = getErrorMessage(
+      error,
+      "Onbekende fout bij adresaanvulling."
+    );
+    const status = getErrorStatus(error);
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status });
   }
 }

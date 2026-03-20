@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getErrorMessage, getErrorStatus } from "@/lib/google-env";
 import { getRouteQuoteFromGoogle } from "@/lib/google-routes";
 import { getComputedPrice } from "@/lib/pricing-store";
 import type { VehicleType } from "@/lib/pricing";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      pickup?: unknown;
+      destination?: unknown;
+      pickupHour?: unknown;
+      vehicle?: unknown;
+    };
 
     const pickup = String(body.pickup ?? "").trim();
     const destination = String(body.destination ?? "").trim();
@@ -50,9 +56,12 @@ export async function POST(request: NextRequest) {
       pricing,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Onbekende fout bij prijsberekening";
+    const message = getErrorMessage(
+      error,
+      "Onbekende fout bij prijsberekening."
+    );
+    const status = getErrorStatus(error);
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status });
   }
 }

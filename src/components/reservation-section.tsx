@@ -10,7 +10,6 @@ import {
   ChevronRight,
   Loader2,
   Mail,
-  MessageCircle,
   Phone,
   Send,
   Users,
