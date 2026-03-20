@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getRouteQuoteFromGoogle } from "@/lib/google-routes";
-import { calculatePrice, type VehicleType } from "@/lib/pricing";
+import { getComputedPrice } from "@/lib/pricing-store";
+import type { VehicleType } from "@/lib/pricing";
+import { buildReservationEmailHtml } from "@/lib/email-template";
 
 type ReservationBody = {
   pickup: string;
@@ -22,10 +24,10 @@ export async function POST(request: NextRequest) {
   try {
     const resendApiKey = process.env.RESEND_API_KEY;
     const toEmail =
-      process.env.RESERVATION_TO_EMAIL || "m.hammid2004@gmail.com";
+      process.env.RESERVATION_TO_EMAIL || "info@taxidepolder.nl";
     const fromEmail =
       process.env.RESERVATION_FROM_EMAIL ||
-      "Taxi De Polder <onboarding@resend.dev>";
+      "Taxi De Polder <info@taxidepolder.nl>";
 
     if (!resendApiKey) {
       return NextResponse.json(
@@ -71,47 +73,36 @@ export async function POST(request: NextRequest) {
       destination: body.destination,
     });
 
-    const pricing = calculatePrice({
-      distanceKm: route.distanceKm,
-      vehicle: body.vehicle,
+    const pricing = await getComputedPrice({
       pickup: body.pickup,
       destination: body.destination,
+      vehicle: body.vehicle,
       pickupHour: Number(body.pickupHour),
+      distanceKm: route.distanceKm,
     });
+
+    const totalPrice = pricing.total;
 
     const resend = new Resend(resendApiKey);
 
-    const html = `
-      <div style="font-family: Arial, sans-serif; color: #111827; line-height: 1.6;">
-        <h1 style="margin-bottom: 8px;">Nieuwe reserveringsaanvraag</h1>
-        <p style="margin-top: 0;">Taxi De Polder</p>
-
-        <h2>Ritgegevens</h2>
-        <ul>
-          <li><strong>Vertrekadres:</strong> ${escapeHtml(body.pickup)}</li>
-          <li><strong>Aankomstadres:</strong> ${escapeHtml(body.destination)}</li>
-          <li><strong>Datum:</strong> ${escapeHtml(body.pickupDate)}</li>
-          <li><strong>Tijd:</strong> ${escapeHtml(body.pickupHour)}:${escapeHtml(body.pickupMinute)}</li>
-          <li><strong>Passagiers:</strong> ${escapeHtml(body.passengers)}</li>
-          <li><strong>Voertuig:</strong> ${escapeHtml(body.vehicle)}</li>
-        </ul>
-
-        <h2>Berekening</h2>
-        <ul>
-          <li><strong>Afstand:</strong> ${route.distanceKm} km</li>
-          <li><strong>Geschatte reistijd:</strong> ${route.durationText}</li>
-          <li><strong>Prijs:</strong> € ${pricing.total.toFixed(2)}</li>
-        </ul>
-
-        <h2>Klantgegevens</h2>
-        <ul>
-          <li><strong>Naam:</strong> ${escapeHtml(body.firstName)} ${escapeHtml(body.lastName)}</li>
-          <li><strong>E-mail:</strong> ${escapeHtml(body.email)}</li>
-          <li><strong>Telefoon:</strong> ${escapeHtml(body.phone)}</li>
-          <li><strong>Opmerking:</strong> ${escapeHtml(body.notes || "-")}</li>
-        </ul>
-      </div>
-    `;
+    const html = buildReservationEmailHtml({
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email,
+      phone: body.phone,
+      pickup: body.pickup,
+      destination: body.destination,
+      pickupDate: body.pickupDate,
+      pickupHour: body.pickupHour,
+      pickupMinute: body.pickupMinute,
+      passengers: body.passengers,
+      vehicle: body.vehicle,
+      notes: body.notes,
+      distanceKm: route.distanceKm,
+      durationText: route.durationText,
+      totalPrice,
+      pricingMode: pricing.mode,
+    });
 
     const { data, error } = await resend.emails.send({
       from: fromEmail,
@@ -140,13 +131,4 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }

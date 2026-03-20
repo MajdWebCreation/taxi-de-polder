@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRouteQuoteFromGoogle } from "@/lib/google-routes";
-import { calculatePrice, type VehicleType } from "@/lib/pricing";
+import { getComputedPrice } from "@/lib/pricing-store";
+import type { VehicleType } from "@/lib/pricing";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,12 +36,12 @@ export async function POST(request: NextRequest) {
         ? Number(pickupHourRaw)
         : undefined;
 
-    const pricing = calculatePrice({
-      distanceKm: route.distanceKm,
-      vehicle,
+    const pricing = await getComputedPrice({
       pickup,
       destination,
+      vehicle,
       pickupHour,
+      distanceKm: route.distanceKm,
     });
 
     return NextResponse.json({
