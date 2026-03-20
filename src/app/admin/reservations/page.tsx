@@ -1,7 +1,8 @@
-import { requireAdmin } from "@/lib/admin-auth";
-import { AdminSignOutButton } from "@/components/admin-sign-out-button";
-import { AdminReservationsPanel } from "@/components/admin-reservations-panel";
-import { AdminNav } from "@/components/admin-nav";
+import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminReservationsPanel } from "@/components/admin/admin-reservations-panel";
+import { AdminSignOutButton } from "@/components/admin/admin-sign-out-button";
+import { requireAdmin } from "@/features/auth/require-admin";
+import type { ReservationRecord } from "@/types/reservations";
 
 export default async function AdminReservationsPage() {
   const { supabase, user } = await requireAdmin();
@@ -30,7 +31,9 @@ export default async function AdminReservationsPage() {
 
         <AdminNav />
 
-        <AdminReservationsPanel initialReservations={(reservations ?? []) as never[]} />
+        <AdminReservationsPanel
+          initialReservations={(reservations ?? []) as ReservationRecord[]}
+        />
       </div>
     </main>
   );

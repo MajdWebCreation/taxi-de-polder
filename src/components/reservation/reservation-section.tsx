@@ -17,7 +17,7 @@ import {
   Clock3,
   MapPin,
 } from "lucide-react";
-import { AddressAutocompleteInput } from "@/components/address-autocomplete-input";
+import { AddressAutocompleteInput } from "@/components/ui/address-autocomplete-input";
 
 type Step = 1 | 2 | 3 | 4;
 type Vehicle = "auto" | "busje" | "";

@@ -4,11 +4,13 @@ import {
   findMatchingSpecialRate,
   normalizePricingSetting,
   normalizeSpecialRate,
-  type ComputedPricingResult,
-  type PricingSetting,
-  type SpecialRate,
-  type VehicleType,
-} from "@/lib/pricing";
+} from "@/features/pricing/engine";
+import type {
+  ComputedPricingResult,
+  PricingSetting,
+  SpecialRate,
+  VehicleType,
+} from "@/types/pricing";
 
 type RawPricingSettingRow = {
   vehicle_type?: unknown;

@@ -5,7 +5,7 @@ import {
   getGoogleApiErrorMessage,
   getGoogleMapsServerApiKey,
   GoogleApiError,
-} from "@/lib/google-env";
+} from "@/lib/google/env";
 
 type Suggestion = {
   placeId: string;

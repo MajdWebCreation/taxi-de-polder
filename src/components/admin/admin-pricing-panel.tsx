@@ -2,40 +2,29 @@
 
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
-
-type VehicleType = "auto" | "busje";
-
-type PricingSetting = {
-  id: number;
-  vehicle_type: VehicleType;
-  base_fare: number;
-  price_per_km: number;
-  minimum_fare: number;
-  schiphol_surcharge: number;
-  night_surcharge: number;
-};
-
-type SpecialRate = {
-  id: number;
-  from_label: string;
-  to_label: string;
-  vehicle_type: VehicleType;
-  fixed_price: number;
-  is_active: boolean;
-  sort_order: number;
-};
+import type {
+  PricingSettingRecord,
+  SpecialRate,
+  VehicleType,
+} from "@/types/pricing";
 
 type Props = {
-  initialSettings: PricingSetting[];
+  initialSettings: PricingSettingRecord[];
   initialRates: SpecialRate[];
 };
 
+type EditablePricingField = keyof Omit<
+  PricingSettingRecord,
+  "id" | "vehicle_type"
+>;
 type RateEditableField = Exclude<keyof SpecialRate, "id">;
 
 export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
   const supabase = createClient();
 
-  const [settings, setSettings] = useState<PricingSetting[]>(initialSettings);
+  const [settings, setSettings] = useState<PricingSettingRecord[]>(
+    initialSettings
+  );
   const [rates, setRates] = useState<SpecialRate[]>(initialRates);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -51,7 +40,7 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
 
   function updateSetting(
     vehicle: VehicleType,
-    field: keyof Omit<PricingSetting, "id" | "vehicle_type">,
+    field: EditablePricingField,
     value: string
   ) {
     setSettings((prev) =>
@@ -317,9 +306,9 @@ function PricingCard({
   onChange,
 }: {
   title: string;
-  item: PricingSetting;
+  item: PricingSettingRecord;
   onChange: (
-    field: keyof Omit<PricingSetting, "id" | "vehicle_type">,
+    field: EditablePricingField,
     value: string
   ) => void;
 }) {

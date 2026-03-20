@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export async function requireAdmin() {
+export async function getAuthenticatedAdminUser() {
   const supabase = await createClient();
 
   const {
@@ -9,7 +9,7 @@ export async function requireAdmin() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/admin/login");
+    return null;
   }
 
   const { data: adminRow } = await supabase
@@ -19,8 +19,18 @@ export async function requireAdmin() {
     .maybeSingle();
 
   if (!adminRow) {
-    redirect("/admin/login");
+    return null;
   }
 
   return { supabase, user };
+}
+
+export async function requireAdmin() {
+  const admin = await getAuthenticatedAdminUser();
+
+  if (!admin) {
+    redirect("/admin/login");
+  }
+
+  return admin;
 }

@@ -2,7 +2,7 @@ import {
   getGoogleApiErrorMessage,
   getGoogleMapsServerApiKey,
   GoogleApiError,
-} from "@/lib/google-env";
+} from "@/lib/google/env";
 
 export type RouteQuoteResult = {
   distanceMeters: number;

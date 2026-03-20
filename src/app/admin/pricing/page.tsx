@@ -1,7 +1,8 @@
-import { requireAdmin } from "@/lib/admin-auth";
-import { AdminPricingPanel } from "@/components/admin-pricing-panel";
-import { AdminSignOutButton } from "@/components/admin-sign-out-button";
-import { AdminNav } from "@/components/admin-nav";
+import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminPricingPanel } from "@/components/admin/admin-pricing-panel";
+import { AdminSignOutButton } from "@/components/admin/admin-sign-out-button";
+import { requireAdmin } from "@/features/auth/require-admin";
+import type { PricingSettingRecord, SpecialRate } from "@/types/pricing";
 
 export default async function AdminPricingPage() {
   const { supabase, user } = await requireAdmin();
@@ -38,8 +39,8 @@ export default async function AdminPricingPage() {
         <AdminNav />
 
         <AdminPricingPanel
-          initialSettings={(settings ?? []) as never[]}
-          initialRates={(rates ?? []) as never[]}
+          initialSettings={(settings ?? []) as PricingSettingRecord[]}
+          initialRates={(rates ?? []) as SpecialRate[]}
         />
       </div>
     </main>

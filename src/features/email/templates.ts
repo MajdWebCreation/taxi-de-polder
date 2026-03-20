@@ -1,20 +1,4 @@
-type ReservationEmailData = {
-  id: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  pickup: string;
-  destination: string;
-  pickupDate: string;
-  pickupTime: string;
-  passengers: string;
-  vehicle: string;
-  notes: string;
-  distanceKm: number;
-  durationText: string;
-  priceTotal: number;
-  pricingMode: string;
-};
+import type { ReservationEmailData } from "@/types/reservations";
 
 function escapeHtml(value: string) {
   return value

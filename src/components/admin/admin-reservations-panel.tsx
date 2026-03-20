@@ -1,33 +1,12 @@
 "use client";
 
 import { useState } from "react";
-
-type Reservation = {
-  id: number;
-  status: "pending" | "confirmed" | "rejected";
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  pickup: string;
-  destination: string;
-  pickup_date: string;
-  pickup_time: string;
-  passengers: number;
-  vehicle_type: "auto" | "busje";
-  notes: string | null;
-  distance_km: number | string;
-  duration_text: string;
-  price_total: number | string;
-  pricing_mode: string;
-  admin_note: string | null;
-  created_at: string;
-};
+import type { ReservationRecord } from "@/types/reservations";
 
 export function AdminReservationsPanel({
   initialReservations,
 }: {
-  initialReservations: Reservation[];
+  initialReservations: ReservationRecord[];
 }) {
   const [items, setItems] = useState(initialReservations);
   const [busyId, setBusyId] = useState<number | null>(null);
@@ -83,7 +62,7 @@ function ReservationCard({
   onConfirm,
   onReject,
 }: {
-  item: Reservation;
+  item: ReservationRecord;
   busy: boolean;
   onConfirm: (note: string) => void;
   onReject: (note: string) => void;
