@@ -210,6 +210,59 @@ export async function updateReservationStatusByActionToken(params: {
   };
 }
 
+export async function deleteReservationById(id: number) {
+  const supabase = createAdminClient();
+  const reservation = await getReservationById(id);
+
+  if (!reservation) {
+    return null;
+  }
+
+  const { error } = await supabase.from("reservations").delete().eq("id", id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return reservation;
+}
+
+export async function deleteReservationsByIds(ids: number[]) {
+  if (ids.length === 0) {
+    return { deletedCount: 0 };
+  }
+
+  const supabase = createAdminClient();
+  const { error, count } = await supabase
+    .from("reservations")
+    .delete({ count: "exact" })
+    .in("id", ids);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    deletedCount: count ?? 0,
+  };
+}
+
+export async function deleteAllReservations() {
+  const supabase = createAdminClient();
+  const { error, count } = await supabase
+    .from("reservations")
+    .delete({ count: "exact" })
+    .not("id", "is", null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    deletedCount: count ?? 0,
+  };
+}
+
 export async function markCustomerPendingEmailSent(id: number, timestamp: string) {
   const supabase = createAdminClient();
   await supabase

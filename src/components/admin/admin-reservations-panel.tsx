@@ -10,6 +10,9 @@ export function AdminReservationsPanel({
 }) {
   const [items, setItems] = useState(initialReservations);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [busyBulk, setBusyBulk] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   async function updateStatus(
     id: number,
@@ -41,15 +44,171 @@ export function AdminReservationsPanel({
     );
   }
 
+  async function deleteReservation(id: number) {
+    const confirmed = window.confirm(
+      `Weet je zeker dat je reservering #${id} wilt verwijderen?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyId(id);
+
+    const response = await fetch(`/api/admin/reservations/${id}`, {
+      method: "DELETE",
+    });
+
+    setBusyId(null);
+
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.error || "Verwijderen mislukt");
+      return;
+    }
+
+    setItems((prev) => prev.filter((item) => item.id !== id));
+    setSelectedIds((prev) => prev.filter((selectedId) => selectedId !== id));
+  }
+
+  function toggleSelectionMode() {
+    setSelectionMode((prev) => {
+      const next = !prev;
+
+      if (!next) {
+        setSelectedIds([]);
+      }
+
+      return next;
+    });
+  }
+
+  function toggleSelected(id: number) {
+    setSelectedIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((selectedId) => selectedId !== id)
+        : [...prev, id]
+    );
+  }
+
+  async function deleteSelectedReservations() {
+    if (selectedIds.length === 0) {
+      alert("Selecteer eerst minimaal één reservering.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Weet je zeker dat je ${selectedIds.length} geselecteerde reservering(en) wilt verwijderen?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyBulk(true);
+
+    const response = await fetch(`/api/admin/reservations/bulk-delete`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ids: selectedIds }),
+    });
+
+    setBusyBulk(false);
+
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.error || "Geselecteerde reserveringen verwijderen mislukt");
+      return;
+    }
+
+    setItems((prev) => prev.filter((item) => !selectedIds.includes(item.id)));
+    setSelectedIds([]);
+  }
+
+  async function deleteAllReservations() {
+    if (items.length === 0) {
+      alert("Er zijn geen reserveringen om te verwijderen.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Weet je zeker dat je ALLE reserveringen in één keer wilt verwijderen?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setBusyBulk(true);
+
+    const response = await fetch(`/api/admin/reservations/bulk-delete`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ deleteAll: true }),
+    });
+
+    setBusyBulk(false);
+
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.error || "Alles verwijderen mislukt");
+      return;
+    }
+
+    setItems([]);
+    setSelectedIds([]);
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <button
+          type="button"
+          onClick={toggleSelectionMode}
+          disabled={busyBulk || busyId !== null}
+          className="rounded-full bg-[#0b5a4e] px-5 py-3 font-bold text-white disabled:opacity-60"
+        >
+          {selectionMode ? "Selectie sluiten" : "Selecteer"}
+        </button>
+
+        {selectionMode ? (
+          <>
+            <button
+              type="button"
+              onClick={deleteSelectedReservations}
+              disabled={busyBulk || busyId !== null || selectedIds.length === 0}
+              className="rounded-full bg-red-600 px-5 py-3 font-bold text-white disabled:opacity-60"
+            >
+              {busyBulk ? "Bezig..." : "Geselecteerde verwijderen"}
+            </button>
+
+            <button
+              type="button"
+              onClick={deleteAllReservations}
+              disabled={busyBulk || busyId !== null || items.length === 0}
+              className="rounded-full bg-red-700 px-5 py-3 font-bold text-white disabled:opacity-60"
+            >
+              {busyBulk ? "Bezig..." : "Alles verwijderen"}
+            </button>
+          </>
+        ) : null}
+      </div>
+
       {items.map((item) => (
         <ReservationCard
           key={item.id}
           item={item}
-          busy={busyId === item.id}
+          busy={busyBulk || busyId === item.id}
+          selectionMode={selectionMode}
+          selected={selectedIds.includes(item.id)}
+          onToggleSelected={() => toggleSelected(item.id)}
           onConfirm={(note) => updateStatus(item.id, "confirmed", note)}
           onReject={(note) => updateStatus(item.id, "rejected", note)}
+          onDelete={() => deleteReservation(item.id)}
         />
       ))}
     </div>
@@ -59,13 +218,21 @@ export function AdminReservationsPanel({
 function ReservationCard({
   item,
   busy,
+  selectionMode,
+  selected,
+  onToggleSelected,
   onConfirm,
   onReject,
+  onDelete,
 }: {
   item: ReservationRecord;
   busy: boolean;
+  selectionMode: boolean;
+  selected: boolean;
+  onToggleSelected: () => void;
   onConfirm: (note: string) => void;
   onReject: (note: string) => void;
+  onDelete: () => void;
 }) {
   const [note, setNote] = useState(item.admin_note || "");
 
@@ -98,10 +265,28 @@ function ReservationCard({
         </span>
       </div>
 
+      {selectionMode ? (
+        <div className="mt-6 rounded-2xl border border-[#e2e8f0] bg-[#f8fafc] p-4">
+          <label className="flex cursor-pointer items-center gap-3 text-sm font-bold text-[#0f1720]">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={onToggleSelected}
+              disabled={busy}
+              className="h-5 w-5 rounded border border-[#d6d9df]"
+            />
+            Selecteer deze reservering
+          </label>
+        </div>
+      ) : null}
+
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Info label="E-mail" value={item.email} />
         <Info label="Telefoon" value={item.phone} />
-        <Info label="Ophaalmoment" value={`${item.pickup_date} om ${item.pickup_time}`} />
+        <Info
+          label="Ophaalmoment"
+          value={`${item.pickup_date} om ${item.pickup_time}`}
+        />
         <Info label="Voertuig" value={item.vehicle_type} />
         <Info label="Passagiers" value={String(item.passengers)} />
         <Info label="Afstand" value={`${item.distance_km} km`} />
@@ -127,7 +312,7 @@ function ReservationCard({
         />
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button
           type="button"
           onClick={() => onConfirm(note)}
@@ -144,6 +329,15 @@ function ReservationCard({
           className="rounded-full bg-red-600 px-5 py-3 font-bold text-white disabled:opacity-60"
         >
           {busy ? "Bezig..." : "Weigeren"}
+        </button>
+
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={busy}
+          className="rounded-full bg-red-700 px-5 py-3 font-bold text-white disabled:opacity-60"
+        >
+          {busy ? "Bezig..." : "Verwijderen"}
         </button>
       </div>
     </div>

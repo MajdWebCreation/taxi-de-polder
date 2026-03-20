@@ -67,3 +67,16 @@ with check (
     where admin_users.user_id = auth.uid()
   )
 );
+
+drop policy if exists "reservations_admin_delete" on public.reservations;
+create policy "reservations_admin_delete"
+on public.reservations
+for delete
+to authenticated
+using (
+  exists (
+    select 1
+    from public.admin_users
+    where admin_users.user_id = auth.uid()
+  )
+);
