@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getErrorMessage, getErrorStatus } from "@/lib/google-env";
+import {
+  getErrorMessage,
+  getErrorStatus,
+  GoogleApiError,
+} from "@/lib/google-env";
 import { getRouteQuoteFromGoogle } from "@/lib/google-routes";
-import { getComputedPrice } from "@/lib/pricing-store";
+import { getComputedPriceWithDebug } from "@/lib/pricing-store";
 import type { VehicleType } from "@/lib/pricing";
+
+function createStageError(step: string, error: unknown): GoogleApiError {
+  const message = getErrorMessage(error, `${step} failed`);
+  const status = getErrorStatus(error);
+  return new GoogleApiError(`${step}: ${message}`, status);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,35 +42,60 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const route = await getRouteQuoteFromGoogle({
-      origin: pickup,
-      destination,
-    });
+    console.log("[quote] selected vehicle", { vehicle });
+
+    let route;
+    try {
+      route = await getRouteQuoteFromGoogle({
+        origin: pickup,
+        destination,
+      });
+      console.log("[quote] route result", route);
+    } catch (error) {
+      throw createStageError("route lookup failed", error);
+    }
 
     const pickupHour =
       pickupHourRaw !== "" && !Number.isNaN(Number(pickupHourRaw))
         ? Number(pickupHourRaw)
         : undefined;
 
-    const pricing = await getComputedPrice({
-      pickup,
-      destination,
-      vehicle,
-      pickupHour,
-      distanceKm: route.distanceKm,
-    });
+    try {
+      const pricingResult = await getComputedPriceWithDebug({
+        pickup,
+        destination,
+        vehicle,
+        pickupHour,
+        distanceKm: route.distanceKm,
+      });
 
-    return NextResponse.json({
-      success: true,
-      route,
-      pricing,
-    });
+      console.log(
+        "[quote] normalized pricing settings",
+        pricingResult.debug.settings
+      );
+      console.log(
+        "[quote] matched special rate",
+        pricingResult.debug.matchedRate
+      );
+      console.log("[quote] final pricing result", pricingResult.pricing);
+
+      return NextResponse.json({
+        success: true,
+        route,
+        pricing: pricingResult.pricing,
+      });
+    } catch (error) {
+      throw createStageError("pricing calculation failed", error);
+    }
   } catch (error) {
-    const message = getErrorMessage(
-      error,
-      "Onbekende fout bij prijsberekening."
-    );
+    const message = getErrorMessage(error, "Onbekende fout bij prijsberekening.");
     const status = getErrorStatus(error);
+
+    console.error("[quote] request failed", {
+      status,
+      message,
+      error,
+    });
 
     return NextResponse.json({ error: message }, { status });
   }
