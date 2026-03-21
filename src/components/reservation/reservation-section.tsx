@@ -84,6 +84,20 @@ const hourOptions = Array.from({ length: 24 }, (_, i) =>
   String(i).padStart(2, "0")
 );
 
+const reservationFieldLabels = {
+  pickup: "vertrekadres",
+  destination: "aankomstadres",
+  pickupDate: "datum",
+  pickupHour: "uur",
+  pickupMinute: "minuten",
+  passengers: "aantal passagiers",
+  vehicle: "voertuig",
+  firstName: "voornaam",
+  lastName: "achternaam",
+  email: "e-mailadres",
+  phone: "telefoonnummer",
+} as const;
+
 function getTodayLocalDate() {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -104,6 +118,14 @@ function isFutureDateTime(date: string, hour: string, minute: string) {
 function formatReadablePickup(date: string, hour: string, minute: string) {
   if (!date || hour === "" || minute === "") return "-";
   return `${date} om ${hour}:${minute}`;
+}
+
+function RequiredBadge() {
+  return (
+    <span className="rounded-full bg-[#f4c542]/20 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#0b5a4e]">
+      Verplicht
+    </span>
+  );
 }
 
 export function ReservationSection() {
@@ -138,6 +160,30 @@ export function ReservationSection() {
         form.email.trim().length > 4 &&
         form.phone.trim().length > 5,
     };
+  }, [form]);
+
+  const missingRequiredFields = useMemo(() => {
+    const fields: string[] = [];
+
+    if (form.pickup.trim().length <= 5) fields.push(reservationFieldLabels.pickup);
+    if (form.destination.trim().length <= 5) {
+      fields.push(reservationFieldLabels.destination);
+    }
+    if (!form.pickupDate.trim()) fields.push(reservationFieldLabels.pickupDate);
+    if (!form.pickupHour.trim()) fields.push(reservationFieldLabels.pickupHour);
+    if (!form.pickupMinute.trim()) fields.push(reservationFieldLabels.pickupMinute);
+    if (!form.passengers.trim()) fields.push(reservationFieldLabels.passengers);
+    if (!(form.vehicle === "auto" || form.vehicle === "busje")) {
+      fields.push(reservationFieldLabels.vehicle);
+    }
+    if (form.firstName.trim().length <= 1) {
+      fields.push(reservationFieldLabels.firstName);
+    }
+    if (form.lastName.trim().length <= 1) fields.push(reservationFieldLabels.lastName);
+    if (form.email.trim().length <= 4) fields.push(reservationFieldLabels.email);
+    if (form.phone.trim().length <= 5) fields.push(reservationFieldLabels.phone);
+
+    return fields;
   }, [form]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -226,9 +272,42 @@ export function ReservationSection() {
   }
 
   async function handleReservationSubmit() {
+    setTouched(true);
     setReserveLoading(true);
     setReserveError("");
     setReserveSuccess("");
+
+    if (!validation.step1) {
+      setStep(1);
+      setReserveLoading(false);
+      setReserveError(
+        "Vul eerst alle verplichte ritgegevens in en kies een geldig toekomstig ophaalmoment."
+      );
+      return;
+    }
+
+    if (!validation.step2) {
+      setStep(2);
+      setReserveLoading(false);
+      setReserveError("Kies eerst een voertuig om uw reservering af te ronden.");
+      return;
+    }
+
+    if (!quote) {
+      setStep(2);
+      setReserveLoading(false);
+      setReserveError("Bereken eerst de ritprijs voordat u uw reservering verstuurt.");
+      return;
+    }
+
+    if (!validation.step3) {
+      setStep(3);
+      setReserveLoading(false);
+      setReserveError(
+        `Vul nog de verplichte velden in: ${missingRequiredFields.join(", ")}.`
+      );
+      return;
+    }
 
     try {
       const response = await fetch("/api/reservations", {
@@ -337,6 +416,10 @@ export function ReservationSection() {
                   <p className="mt-2 text-[#64748b]">
                     Kies vertrek, bestemming en een toekomstig ophaalmoment.
                   </p>
+                  <p className="mt-3 text-sm text-[#64748b]">
+                    Velden met <span className="font-semibold text-[#0b5a4e]">Verplicht</span> moeten
+                    ingevuld zijn.
+                  </p>
 
                   <div className="mt-8 grid gap-5">
                     <AddressAutocompleteInput
@@ -344,6 +427,8 @@ export function ReservationSection() {
                       value={form.pickup}
                       onChange={(value) => updateField("pickup", value)}
                       placeholder="Typ straat, postcode of plaats"
+                      required
+                      invalid={touched && form.pickup.trim().length <= 5}
                       error={
                         touched && form.pickup.trim().length <= 5
                           ? "Kies een volledig vertrekadres."
@@ -356,6 +441,8 @@ export function ReservationSection() {
                       value={form.destination}
                       onChange={(value) => updateField("destination", value)}
                       placeholder="Typ straat, postcode of plaats"
+                      required
+                      invalid={touched && form.destination.trim().length <= 5}
                       error={
                         touched && form.destination.trim().length <= 5
                           ? "Kies een volledig aankomstadres."
@@ -375,13 +462,22 @@ export function ReservationSection() {
                         <div>
                           <label className="mb-2 block text-sm font-medium text-[#475569]">
                             Datum
+                            <span className="ml-2 align-middle">
+                              <RequiredBadge />
+                            </span>
                           </label>
                           <input
                             type="date"
                             min={todayMin}
                             value={form.pickupDate}
                             onChange={(e) => updateField("pickupDate", e.target.value)}
-                            className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+                            aria-invalid={touched && !form.pickupDate.trim()}
+                            className={[
+                              "w-full rounded-2xl border bg-white px-4 py-4 outline-none transition focus:ring-4",
+                              touched && !form.pickupDate.trim()
+                                ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+                            ].join(" ")}
                           />
                         </div>
 
@@ -389,11 +485,18 @@ export function ReservationSection() {
                           <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#475569]">
                             <Clock3 className="h-4 w-4 text-[#0b5a4e]" />
                             Uur
+                            <RequiredBadge />
                           </label>
                           <select
                             value={form.pickupHour}
                             onChange={(e) => updateField("pickupHour", e.target.value)}
-                            className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+                            aria-invalid={touched && !form.pickupHour.trim()}
+                            className={[
+                              "w-full rounded-2xl border bg-white px-4 py-4 outline-none transition focus:ring-4",
+                              touched && !form.pickupHour.trim()
+                                ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+                            ].join(" ")}
                           >
                             <option value="">Kies</option>
                             {hourOptions.map((hour) => (
@@ -408,11 +511,18 @@ export function ReservationSection() {
                           <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#475569]">
                             <Clock3 className="h-4 w-4 text-[#0b5a4e]" />
                             Minuten
+                            <RequiredBadge />
                           </label>
                           <select
                             value={form.pickupMinute}
                             onChange={(e) => updateField("pickupMinute", e.target.value)}
-                            className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+                            aria-invalid={touched && !form.pickupMinute.trim()}
+                            className={[
+                              "w-full rounded-2xl border bg-white px-4 py-4 outline-none transition focus:ring-4",
+                              touched && !form.pickupMinute.trim()
+                                ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                                : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+                            ].join(" ")}
                           >
                             {minuteOptions.map((minute) => (
                               <option key={minute} value={minute}>
@@ -439,6 +549,7 @@ export function ReservationSection() {
                       <label className="mb-2 flex items-center gap-2 text-sm font-bold text-[#0f1720]">
                         <Users className="h-4 w-4 text-[#0b5a4e]" />
                         Aantal passagiers
+                        <RequiredBadge />
                       </label>
                       <select
                         value={form.passengers}
@@ -463,6 +574,10 @@ export function ReservationSection() {
                   </h3>
                   <p className="mt-2 text-[#64748b]">
                     Selecteer het juiste voertuig en bereken direct de prijs.
+                  </p>
+                  <p className="mt-3 text-sm text-[#64748b]">
+                    Uw voertuigkeuze is <span className="font-semibold text-[#0b5a4e]">verplicht</span>
+                    {" "}om de prijs te berekenen.
                   </p>
 
                   <div className="mt-8 grid gap-5">
@@ -517,6 +632,12 @@ export function ReservationSection() {
                   {quoteError && (
                     <p className="mt-4 text-sm text-red-600">{quoteError}</p>
                   )}
+
+                  {touched && !validation.step2 && (
+                    <p className="mt-3 text-sm text-red-600">
+                      Kies een voertuig om verder te gaan.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -528,29 +649,57 @@ export function ReservationSection() {
                   <p className="mt-2 text-[#64748b]">
                     Laat uw gegevens achter, zodat wij uw aanvraag zorgvuldig kunnen verwerken.
                   </p>
+                  <p className="mt-3 text-sm text-[#64748b]">
+                    Velden met <span className="font-semibold text-[#0b5a4e]">Verplicht</span> moeten
+                    ingevuld zijn.
+                  </p>
 
                   <div className="mt-8 grid gap-5">
                     <div className="grid gap-5 md:grid-cols-2">
                       <div>
-                        <label className="mb-2 block text-sm font-bold text-[#0f1720]">
+                        <label className="mb-2 flex items-center gap-2 text-sm font-bold text-[#0f1720]">
                           Voornaam
+                          <RequiredBadge />
                         </label>
                         <input
                           value={form.firstName}
                           onChange={(e) => updateField("firstName", e.target.value)}
-                          className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+                          aria-invalid={touched && form.firstName.trim().length <= 1}
+                          className={[
+                            "w-full rounded-2xl border bg-white px-4 py-4 outline-none transition focus:ring-4",
+                            touched && form.firstName.trim().length <= 1
+                              ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                              : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+                          ].join(" ")}
                         />
+                        {touched && form.firstName.trim().length <= 1 && (
+                          <p className="mt-2 text-sm text-red-600">
+                            Vul uw voornaam in.
+                          </p>
+                        )}
                       </div>
 
                       <div>
-                        <label className="mb-2 block text-sm font-bold text-[#0f1720]">
+                        <label className="mb-2 flex items-center gap-2 text-sm font-bold text-[#0f1720]">
                           Achternaam
+                          <RequiredBadge />
                         </label>
                         <input
                           value={form.lastName}
                           onChange={(e) => updateField("lastName", e.target.value)}
-                          className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+                          aria-invalid={touched && form.lastName.trim().length <= 1}
+                          className={[
+                            "w-full rounded-2xl border bg-white px-4 py-4 outline-none transition focus:ring-4",
+                            touched && form.lastName.trim().length <= 1
+                              ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                              : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+                          ].join(" ")}
                         />
+                        {touched && form.lastName.trim().length <= 1 && (
+                          <p className="mt-2 text-sm text-red-600">
+                            Vul uw achternaam in.
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -559,25 +708,49 @@ export function ReservationSection() {
                         <label className="mb-2 flex items-center gap-2 text-sm font-bold text-[#0f1720]">
                           <Mail className="h-4 w-4 text-[#0b5a4e]" />
                           E-mailadres
+                          <RequiredBadge />
                         </label>
                         <input
                           type="email"
                           value={form.email}
                           onChange={(e) => updateField("email", e.target.value)}
-                          className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+                          aria-invalid={touched && form.email.trim().length <= 4}
+                          className={[
+                            "w-full rounded-2xl border bg-white px-4 py-4 outline-none transition focus:ring-4",
+                            touched && form.email.trim().length <= 4
+                              ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                              : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+                          ].join(" ")}
                         />
+                        {touched && form.email.trim().length <= 4 && (
+                          <p className="mt-2 text-sm text-red-600">
+                            Vul een geldig e-mailadres in.
+                          </p>
+                        )}
                       </div>
 
                       <div>
                         <label className="mb-2 flex items-center gap-2 text-sm font-bold text-[#0f1720]">
                           <Phone className="h-4 w-4 text-[#0b5a4e]" />
                           Telefoonnummer
+                          <RequiredBadge />
                         </label>
                         <input
                           value={form.phone}
                           onChange={(e) => updateField("phone", e.target.value)}
-                          className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+                          aria-invalid={touched && form.phone.trim().length <= 5}
+                          className={[
+                            "w-full rounded-2xl border bg-white px-4 py-4 outline-none transition focus:ring-4",
+                            touched && form.phone.trim().length <= 5
+                              ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+                              : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+                          ].join(" ")}
                         />
+                        {touched && form.phone.trim().length <= 5 && (
+                          <p className="mt-2 text-sm text-red-600">
+                            Vul een geldig telefoonnummer in.
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -604,6 +777,11 @@ export function ReservationSection() {
                   <p className="mt-2 text-[#64748b]">
                     Controleer uw ritgegevens en verstuur daarna uw reserveringsaanvraag.
                   </p>
+
+                  <div className="mt-4 rounded-2xl border border-[#f4c542]/40 bg-[#fef7dc] px-4 py-3 text-sm text-[#6b4f00]">
+                    Velden met <span className="font-semibold">Verplicht</span> moeten ingevuld zijn
+                    voordat u de reservering kunt versturen.
+                  </div>
 
                   <div className="mt-8 grid gap-4">
                     <SummaryRow label="Vertrekadres" value={form.pickup} />

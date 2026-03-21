@@ -15,6 +15,8 @@ type Props = {
   onChange: (value: string) => void;
   placeholder?: string;
   error?: string;
+  required?: boolean;
+  invalid?: boolean;
 };
 
 function createSessionToken() {
@@ -27,6 +29,8 @@ export function AddressAutocompleteInput({
   onChange,
   placeholder,
   error,
+  required = false,
+  invalid = false,
 }: Props) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
@@ -113,6 +117,11 @@ export function AddressAutocompleteInput({
       <label className="mb-2 flex items-center gap-2 text-sm font-bold text-[#0f1720]">
         <MapPin className="h-4 w-4 text-[#0b5a4e]" />
         {label}
+        {required ? (
+          <span className="rounded-full bg-[#f4c542]/20 px-2 py-0.5 text-[0.65rem] font-bold uppercase tracking-[0.12em] text-[#0b5a4e]">
+            Verplicht
+          </span>
+        ) : null}
       </label>
 
       <div className="relative">
@@ -127,7 +136,13 @@ export function AddressAutocompleteInput({
           }}
           placeholder={placeholder}
           autoComplete="off"
-          className="w-full rounded-2xl border border-[#d6d9df] bg-white px-4 py-4 pr-12 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+          aria-invalid={invalid}
+          className={[
+            "w-full rounded-2xl border bg-white px-4 py-4 pr-12 outline-none transition focus:ring-4",
+            invalid
+              ? "border-red-300 focus:border-red-500 focus:ring-red-500/10"
+              : "border-[#d6d9df] focus:border-[#0b5a4e] focus:ring-[#0b5a4e]/10",
+          ].join(" ")}
         />
 
         {loading && (

@@ -37,10 +37,25 @@ export async function POST(request: NextRequest) {
       "phone",
     ];
 
+    const fieldLabels: Record<keyof ReservationRequestBody, string> = {
+      pickup: "Vertrekadres",
+      destination: "Aankomstadres",
+      pickupDate: "Datum",
+      pickupHour: "Uur",
+      pickupMinute: "Minuten",
+      passengers: "Aantal passagiers",
+      vehicle: "Voertuig",
+      firstName: "Voornaam",
+      lastName: "Achternaam",
+      email: "E-mailadres",
+      phone: "Telefoonnummer",
+      notes: "Extra opmerkingen",
+    };
+
     for (const field of requiredFields) {
       if (!String(body[field] ?? "").trim()) {
         return NextResponse.json(
-          { error: `Veld ontbreekt: ${field}` },
+          { error: `${fieldLabels[field]} is verplicht.` },
           { status: 400 }
         );
       }
