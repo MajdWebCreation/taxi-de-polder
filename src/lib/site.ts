@@ -1,4 +1,5 @@
 export const SITE_URL = "https://www.taxidepolder.nl";
+export const SITE_CREDIT_URL = "https://ymcreations.nl";
 export const SITE_NAME = "Taxi De Polder";
 export const SITE_PHONE_DISPLAY = "+31 6 44445501";
 export const SITE_PHONE_RAW = "+31644445501";
