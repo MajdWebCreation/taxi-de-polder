@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Plane } from "lucide-react";
+import { SITE_WHATSAPP_URL } from "@/lib/site";
 
 const autoRates = [
   { place: "Beverwijk", price: "€ 65" },
@@ -67,14 +68,14 @@ function RateCard({
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <a
-          href="tel:0644445501"
+          href="#reserveren"
           className="inline-flex items-center justify-center rounded-xl bg-[#f4c542] px-5 py-3 text-sm font-bold text-[#083b34] transition hover:scale-[1.02]"
         >
           Boek een rit
         </a>
 
         <a
-          href="https://wa.me/31644445501"
+          href={SITE_WHATSAPP_URL}
           target="_blank"
           rel="noreferrer"
           className="inline-flex items-center justify-center rounded-xl border border-white/15 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"

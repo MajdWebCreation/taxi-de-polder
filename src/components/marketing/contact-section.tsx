@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Phone, MessageCircle, ChevronRight } from "lucide-react";
+import { SITE_PHONE_DISPLAY, SITE_PHONE_TEL, SITE_WHATSAPP_URL } from "@/lib/site";
 
 export function ContactSection() {
   return (
@@ -30,15 +31,15 @@ export function ContactSection() {
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <a
-                href="tel:0644445501"
+                href={`tel:${SITE_PHONE_TEL}`}
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f4c542] px-6 py-3 text-base font-bold text-[#083b34] transition hover:scale-[1.02]"
               >
                 <Phone className="h-5 w-5" />
-                Bel 0644445501
+                Bel {SITE_PHONE_DISPLAY}
               </a>
 
               <a
-                href="https://wa.me/31644445501"
+                href={SITE_WHATSAPP_URL}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/10"
@@ -57,15 +58,18 @@ export function ContactSection() {
             <div className="mt-5 space-y-4">
               <div className="rounded-2xl bg-white/5 p-4">
                 <p className="text-sm text-white/70">Telefoon</p>
-                <a href="tel:0644445501" className="mt-1 block text-xl font-bold text-white">
-                  0644445501
+                <a
+                  href={`tel:${SITE_PHONE_TEL}`}
+                  className="mt-1 block text-xl font-bold text-white"
+                >
+                  {SITE_PHONE_DISPLAY}
                 </a>
               </div>
 
               <div className="rounded-2xl bg-white/5 p-4">
                 <p className="text-sm text-white/70">WhatsApp</p>
                 <a
-                  href="https://wa.me/31644445501"
+                  href={SITE_WHATSAPP_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-1 inline-flex items-center gap-2 text-xl font-bold text-white"

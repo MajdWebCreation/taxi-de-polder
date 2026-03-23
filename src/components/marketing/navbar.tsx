@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, Phone, MessageCircle, X } from "lucide-react";
 import { useState } from "react";
+import { SITE_PHONE_TEL, SITE_WHATSAPP_URL } from "@/lib/site";
 
 const navLinks = [
   { href: "#diensten", label: "Diensten" },
@@ -56,7 +57,7 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           <a
-            href="tel:0644445501"
+            href={`tel:${SITE_PHONE_TEL}`}
             className="inline-flex items-center gap-2 rounded-full border border-[#f4c542]/35 px-4 py-2 text-sm font-semibold text-white transition hover:border-[#f4c542] hover:bg-white/5"
           >
             <Phone className="h-4 w-4" />
@@ -64,7 +65,7 @@ export function Navbar() {
           </a>
 
           <a
-            href="https://wa.me/31644445501"
+            href={SITE_WHATSAPP_URL}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-[#f4c542] px-4 py-2 text-sm font-bold text-[#083b34] transition duration-200 hover:scale-[1.03] hover:shadow-lg"
@@ -107,7 +108,7 @@ export function Navbar() {
 
               <div className="mt-3 grid grid-cols-2 gap-3">
                 <a
-                  href="tel:0644445501"
+                  href={`tel:${SITE_PHONE_TEL}`}
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-[#f4c542]/35 px-4 py-3 text-sm font-semibold text-white transition hover:border-[#f4c542]"
                 >
                   <Phone className="h-4 w-4" />
@@ -115,7 +116,7 @@ export function Navbar() {
                 </a>
 
                 <a
-                  href="https://wa.me/31644445501"
+                  href={SITE_WHATSAPP_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f4c542] px-4 py-3 text-sm font-bold text-[#083b34]"

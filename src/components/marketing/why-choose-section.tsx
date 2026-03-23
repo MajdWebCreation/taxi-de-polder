@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ShieldCheck, Clock3, PhoneCall, Star } from "lucide-react";
+import { SITE_PHONE_DISPLAY, SITE_PHONE_TEL, SITE_WHATSAPP_URL } from "@/lib/site";
 
 const points = [
   {
@@ -100,10 +101,10 @@ export function WhyChooseSection() {
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
               <p className="text-sm text-white/70">Telefoon</p>
               <a
-                href="tel:0644445501"
+                href={`tel:${SITE_PHONE_TEL}`}
                 className="mt-1 block text-xl font-bold text-[#f4c542]"
               >
-                0644445501
+                {SITE_PHONE_DISPLAY}
               </a>
             </div>
 
@@ -114,7 +115,7 @@ export function WhyChooseSection() {
           </div>
 
           <a
-            href="https://wa.me/31644445501"
+            href={SITE_WHATSAPP_URL}
             target="_blank"
             rel="noreferrer"
             className="mt-8 inline-flex rounded-full bg-[#f4c542] px-6 py-3 text-sm font-bold text-[#083b34] transition hover:scale-[1.02]"
