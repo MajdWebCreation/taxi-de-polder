@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import type {
   PricingSettingRecord,
@@ -244,9 +244,9 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
                   <option value="busje">Busje</option>
                 </select>
               </div>
-              <Field
+              <NumberField
                 label="Vaste prijs"
-                value={String(rate.fixed_price)}
+                value={rate.fixed_price}
                 onChange={(value) => updateRate(rate.id, "fixed_price", Number(value))}
                 placeholder="65"
               />
@@ -317,32 +317,91 @@ function PricingCard({
       <h3 className="text-xl font-black text-[#0f1720]">{title}</h3>
 
       <div className="mt-5 grid gap-4">
-        <Field
+        <NumberField
           label="Starttarief"
-          value={String(item.base_fare)}
+          value={item.base_fare}
           onChange={(value) => onChange("base_fare", value)}
         />
-        <Field
+        <NumberField
           label="Prijs per km"
-          value={String(item.price_per_km)}
+          value={item.price_per_km}
           onChange={(value) => onChange("price_per_km", value)}
         />
-        <Field
+        <NumberField
           label="Minimumprijs"
-          value={String(item.minimum_fare)}
+          value={item.minimum_fare}
           onChange={(value) => onChange("minimum_fare", value)}
         />
-        <Field
+        <NumberField
           label="Schiphol toeslag"
-          value={String(item.schiphol_surcharge)}
+          value={item.schiphol_surcharge}
           onChange={(value) => onChange("schiphol_surcharge", value)}
         />
-        <Field
+        <NumberField
           label="Nachttoeslag"
-          value={String(item.night_surcharge)}
+          value={item.night_surcharge}
           onChange={(value) => onChange("night_surcharge", value)}
         />
       </div>
+    </div>
+  );
+}
+
+function parseDecimalInput(value: string) {
+  const normalized = value.trim().replace(",", ".");
+
+  if (!normalized) {
+    return null;
+  }
+
+  const parsed = Number(normalized);
+
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function NumberField({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  const [textValue, setTextValue] = useState(String(value));
+
+  useEffect(() => {
+    setTextValue(String(value));
+  }, [value]);
+
+  function commitValue(nextValue: string) {
+    const parsed = parseDecimalInput(nextValue);
+
+    if (parsed === null) {
+      setTextValue(String(value));
+      return;
+    }
+
+    const normalized = String(parsed);
+    setTextValue(normalized);
+    onChange(normalized);
+  }
+
+  return (
+    <div>
+      <label className="mb-2 block text-sm font-bold text-[#0f1720]">
+        {label}
+      </label>
+      <input
+        value={textValue}
+        onChange={(e) => setTextValue(e.target.value)}
+        onBlur={(e) => commitValue(e.target.value)}
+        placeholder={placeholder}
+        inputMode="decimal"
+        className="w-full rounded-2xl border border-[#d6d9df] px-4 py-3 outline-none transition focus:border-[#0b5a4e] focus:ring-4 focus:ring-[#0b5a4e]/10"
+      />
     </div>
   );
 }
