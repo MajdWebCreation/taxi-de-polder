@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import type {
   PricingSettingRecord,
@@ -28,6 +28,8 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
   const [rates, setRates] = useState<SpecialRate[]>(initialRates);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const settingsRef = useRef(settings);
+  const ratesRef = useRef(rates);
 
   const auto = useMemo(
     () => settings.find((item) => item.vehicle_type === "auto"),
@@ -43,13 +45,13 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
     field: EditablePricingField,
     value: string
   ) {
-    setSettings((prev) =>
-      prev.map((item) =>
+    const nextSettings = settingsRef.current.map((item) =>
         item.vehicle_type === vehicle
           ? { ...item, [field]: Number(value) }
           : item
-      )
     );
+    settingsRef.current = nextSettings;
+    setSettings(nextSettings);
   }
 
   function updateRate(
@@ -57,16 +59,18 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
     field: RateEditableField,
     value: string | number | boolean
   ) {
-    setRates((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    const nextRates = ratesRef.current.map((item) =>
+      item.id === id ? { ...item, [field]: value } : item
     );
+    ratesRef.current = nextRates;
+    setRates(nextRates);
   }
 
   function addRate() {
     const tempId = -Date.now();
 
-    setRates((prev) => [
-      ...prev,
+    const nextRates = [
+      ...ratesRef.current,
       {
         id: tempId,
         from_label: "",
@@ -74,21 +78,35 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
         vehicle_type: "auto",
         fixed_price: 0,
         is_active: true,
-        sort_order: prev.length + 1,
+        sort_order: ratesRef.current.length + 1,
       },
-    ]);
+    ];
+
+    ratesRef.current = nextRates;
+    setRates(nextRates);
   }
 
   function removeRate(id: number) {
-    setRates((prev) => prev.filter((item) => item.id !== id));
+    const nextRates = ratesRef.current.filter((item) => item.id !== id);
+    ratesRef.current = nextRates;
+    setRates(nextRates);
+  }
+
+  function commitFocusedField() {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
   }
 
   async function saveAll() {
     setSaving(true);
     setMessage("");
 
+    const currentSettings = settingsRef.current;
+    const currentRates = ratesRef.current;
+
     try {
-      for (const setting of settings) {
+      for (const setting of currentSettings) {
         const { error } = await supabase
           .from("pricing_settings")
           .update({
@@ -104,7 +122,9 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
         if (error) throw error;
       }
 
-      const existingIds = rates.filter((item) => item.id > 0).map((item) => item.id);
+      const existingIds = currentRates
+        .filter((item) => item.id > 0)
+        .map((item) => item.id);
 
       if (existingIds.length > 0) {
         const { error: deleteMissingError } = await supabase
@@ -122,7 +142,7 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
         if (deleteAllError) throw deleteAllError;
       }
 
-      for (const rate of rates) {
+      for (const rate of currentRates) {
         if (rate.id > 0) {
           const { error } = await supabase
             .from("special_rates")
@@ -287,6 +307,7 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <button
           type="button"
+          onMouseDown={commitFocusedField}
           onClick={saveAll}
           disabled={saving}
           className="inline-flex rounded-full bg-[#f4c542] px-6 py-4 font-bold text-[#083b34] transition hover:scale-[1.01] disabled:opacity-70"

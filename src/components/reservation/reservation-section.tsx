@@ -30,15 +30,25 @@ type QuoteResponse = {
     distanceKm: number;
     durationText: string;
   };
-  pricing: {
-    baseFare: number;
-    minimumFare: number;
-    distanceKm: number;
-    subtotal: number;
-    schipholApplied: boolean;
-    nightApplied: boolean;
-    total: number;
-  };
+  pricing:
+    | {
+        mode: "dynamic";
+        baseFare: number;
+        minimumFare: number;
+        distanceKm: number;
+        schipholApplied: boolean;
+        nightApplied: boolean;
+        total: number;
+      }
+    | {
+        mode: "special";
+        total: number;
+        matchedRate: {
+          id: number;
+          from_label: string;
+          to_label: string;
+        };
+      };
 };
 
 type FormState = {
@@ -623,8 +633,16 @@ export function ReservationSection() {
                     </button>
 
                     {quote && (
-                      <div className="inline-flex items-center rounded-full bg-[#f4c542]/20 px-4 py-3 font-semibold text-[#0b5a4e]">
-                        Live prijs: € {quote.pricing.total.toFixed(2)}
+                      <div className="space-y-2">
+                        <div className="inline-flex items-center rounded-full bg-[#f4c542]/20 px-4 py-3 font-semibold text-[#0b5a4e]">
+                          Live prijs: € {quote.pricing.total.toFixed(2)}
+                        </div>
+                        {quote.pricing.mode === "special" && (
+                          <p className="text-sm text-[#64748b]">
+                            Vast tarief toegepast voor deze route. Aanpassingen in prijs per km hebben
+                            hier geen effect zolang dit speciale tarief actief is.
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -817,6 +835,12 @@ export function ReservationSection() {
                           label="Prijs"
                           value={`€ ${quote.pricing.total.toFixed(2)}`}
                         />
+                        {quote.pricing.mode === "special" && (
+                          <SummaryRow
+                            label="Tarieftype"
+                            value={`Vast tarief (${quote.pricing.matchedRate.from_label} -> ${quote.pricing.matchedRate.to_label})`}
+                          />
+                        )}
                       </>
                     )}
                   </div>
