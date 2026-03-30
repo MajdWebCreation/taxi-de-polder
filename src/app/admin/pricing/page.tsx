@@ -3,6 +3,10 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminPricingPanel } from "@/components/admin/admin-pricing-panel";
 import { AdminSignOutButton } from "@/components/admin/admin-sign-out-button";
 import { requireAdmin } from "@/features/auth/require-admin";
+import {
+  normalizePricingSetting,
+  normalizeSpecialRate,
+} from "@/features/pricing/engine";
 import type { PricingSettingRecord, SpecialRate } from "@/types/pricing";
 
 export const metadata: Metadata = {
@@ -36,6 +40,26 @@ export default async function AdminPricingPage() {
       .order("id", { ascending: true }),
   ]);
 
+  const normalizedSettings: PricingSettingRecord[] = ((settings ?? []) as Array<{
+    id?: unknown;
+    [key: string]: unknown;
+  }>).map((item, index) => ({
+    id: Number(item.id),
+    ...normalizePricingSetting(
+      item as Parameters<typeof normalizePricingSetting>[0],
+      `pricing_settings[${index}]`
+    ),
+  }));
+
+  const normalizedRates: SpecialRate[] = ((rates ?? []) as Array<{
+    [key: string]: unknown;
+  }>).map((item, index) =>
+    normalizeSpecialRate(
+      item as Parameters<typeof normalizeSpecialRate>[0],
+      `special_rates[${index}]`
+    )
+  );
+
   return (
     <main className="min-h-screen bg-[#f6f4ee] px-4 py-10">
       <div className="mx-auto max-w-6xl">
@@ -56,8 +80,8 @@ export default async function AdminPricingPage() {
         <AdminNav />
 
         <AdminPricingPanel
-          initialSettings={(settings ?? []) as PricingSettingRecord[]}
-          initialRates={(rates ?? []) as SpecialRate[]}
+          initialSettings={normalizedSettings}
+          initialRates={normalizedRates}
         />
       </div>
     </main>

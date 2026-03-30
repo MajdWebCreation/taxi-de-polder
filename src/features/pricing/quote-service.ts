@@ -19,6 +19,7 @@ export async function getQuote(params: {
     vehicle: params.vehicle,
     pickupHour: params.pickupHour,
     distanceKm: route.distanceKm,
+    durationMinutes: route.durationMinutes,
   });
 
   return {

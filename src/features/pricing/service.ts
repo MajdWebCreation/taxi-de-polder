@@ -16,8 +16,8 @@ type RawPricingSettingRow = {
   vehicle_type?: unknown;
   base_fare?: unknown;
   price_per_km?: unknown;
+  price_per_minute?: unknown;
   minimum_fare?: unknown;
-  schiphol_surcharge?: unknown;
   night_surcharge?: unknown;
 };
 
@@ -90,6 +90,7 @@ export async function getComputedPriceWithDebug(params: {
   vehicle: VehicleType;
   pickupHour?: number;
   distanceKm: number;
+  durationMinutes: number;
 }): Promise<ComputedPriceWithDebug> {
   const { settings, rates } = await getPricingData();
 
@@ -130,9 +131,8 @@ export async function getComputedPriceWithDebug(params: {
   const pricing = calculateDynamicPrice({
     settings: setting,
     distanceKm: params.distanceKm,
+    durationMinutes: params.durationMinutes,
     pickupHour: params.pickupHour,
-    pickup: params.pickup,
-    destination: params.destination,
   });
 
   if (!Number.isFinite(pricing.total)) {
@@ -155,6 +155,7 @@ export async function getComputedPrice(params: {
   vehicle: VehicleType;
   pickupHour?: number;
   distanceKm: number;
+  durationMinutes: number;
 }): Promise<ComputedPricingResult> {
   const result = await getComputedPriceWithDebug(params);
   return result.pricing;

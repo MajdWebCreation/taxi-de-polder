@@ -28,6 +28,7 @@ type QuoteResponse = {
     distanceMeters: number;
     durationSeconds: number;
     distanceKm: number;
+    durationMinutes: number;
     durationText: string;
   };
   pricing:
@@ -36,7 +37,9 @@ type QuoteResponse = {
         baseFare: number;
         minimumFare: number;
         distanceKm: number;
-        schipholApplied: boolean;
+        durationMinutes: number;
+        pricePerKm: number;
+        pricePerMinute: number;
         nightApplied: boolean;
         total: number;
       }
@@ -583,11 +586,11 @@ export function ReservationSection() {
                     Kies uw voertuig
                   </h3>
                   <p className="mt-2 text-[#64748b]">
-                    Selecteer het juiste voertuig en bereken direct de prijs.
+                    Selecteer het juiste voertuig en bereken direct de geschatte ritprijs.
                   </p>
                   <p className="mt-3 text-sm text-[#64748b]">
                     Uw voertuigkeuze is <span className="font-semibold text-[#0b5a4e]">verplicht</span>
-                    {" "}om de prijs te berekenen.
+                    {" "}om de ritprijs vooraf te berekenen.
                   </p>
 
                   <div className="mt-8 grid gap-5">
@@ -622,12 +625,12 @@ export function ReservationSection() {
                       {quoteLoading ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Prijs berekenen...
+                          Ritprijs berekenen...
                         </>
                       ) : (
                         <>
                           <CarFront className="h-4 w-4" />
-                          Bereken prijs
+                          Bereken ritprijs
                         </>
                       )}
                     </button>
@@ -635,12 +638,14 @@ export function ReservationSection() {
                     {quote && (
                       <div className="space-y-2">
                         <div className="inline-flex items-center rounded-full bg-[#f4c542]/20 px-4 py-3 font-semibold text-[#0b5a4e]">
-                          Live prijs: € {quote.pricing.total.toFixed(2)}
+                          Geschatte ritprijs: € {quote.pricing.total.toFixed(2)}
                         </div>
+                        <p className="text-sm text-[#64748b]">
+                          Berekend op basis van afstand en actuele reistijd.
+                        </p>
                         {quote.pricing.mode === "special" && (
                           <p className="text-sm text-[#64748b]">
-                            Vast tarief toegepast voor deze route. Aanpassingen in prijs per km hebben
-                            hier geen effect zolang dit speciale tarief actief is.
+                            Vast tarief toegepast voor deze route. Dit tarief heeft voorrang op de standaard berekening.
                           </p>
                         )}
                       </div>
@@ -832,7 +837,7 @@ export function ReservationSection() {
                           value={quote.route.durationText}
                         />
                         <SummaryRow
-                          label="Prijs"
+                          label="Geschatte ritprijs"
                           value={`€ ${quote.pricing.total.toFixed(2)}`}
                         />
                         {quote.pricing.mode === "special" && (

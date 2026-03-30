@@ -43,6 +43,7 @@ export async function createReservation(input: ReservationRequestBody) {
     vehicle: input.vehicle,
     pickupHour: Number(input.pickupHour),
     distanceKm: route.distanceKm,
+    durationMinutes: route.durationMinutes,
   });
 
   const priceTotal = Number(pricing.total);

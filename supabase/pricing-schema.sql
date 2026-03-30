@@ -15,8 +15,8 @@ create table if not exists public.pricing_settings (
   vehicle_type public.vehicle_type not null unique,
   base_fare numeric(10,2) not null,
   price_per_km numeric(10,2) not null,
+  price_per_minute numeric(10,2) not null default 0.00,
   minimum_fare numeric(10,2) not null,
-  schiphol_surcharge numeric(10,2) not null default 0,
   night_surcharge numeric(10,2) not null default 0,
   updated_at timestamptz not null default now()
 );
@@ -144,11 +144,11 @@ insert into public.pricing_settings (
   vehicle_type,
   base_fare,
   price_per_km,
+  price_per_minute,
   minimum_fare,
-  schiphol_surcharge,
   night_surcharge
 )
 values
-  ('auto', 12.00, 2.35, 25.00, 7.00, 10.00),
-  ('busje', 20.00, 3.25, 40.00, 10.00, 15.00)
+  ('auto', 12.00, 2.35, 0.50, 25.00, 10.00),
+  ('busje', 20.00, 3.25, 0.65, 40.00, 15.00)
 on conflict (vehicle_type) do nothing;

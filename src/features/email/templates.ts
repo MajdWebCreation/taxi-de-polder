@@ -73,7 +73,7 @@ function reservationSummary(data: ReservationEmailData) {
         <tr><td style="padding:0 0 10px 0;color:#64748b;">Geschatte reistijd</td><td style="padding:0 0 10px 0;text-align:right;font-weight:700;">${escapeHtml(
           data.durationText
         )}</td></tr>
-        <tr><td style="padding:0;color:#64748b;">Prijs</td><td style="padding:0;text-align:right;font-size:22px;font-weight:800;color:#0b5a4e;">€ ${data.priceTotal.toFixed(
+        <tr><td style="padding:0;color:#64748b;">Geschatte ritprijs</td><td style="padding:0;text-align:right;font-size:22px;font-weight:800;color:#0b5a4e;">€ ${data.priceTotal.toFixed(
           2
         )}</td></tr>
       </table>

@@ -9,8 +9,8 @@ type RawPricingSetting = {
   vehicle_type?: unknown;
   base_fare?: unknown;
   price_per_km?: unknown;
+  price_per_minute?: unknown;
   minimum_fare?: unknown;
-  schiphol_surcharge?: unknown;
   night_surcharge?: unknown;
 };
 
@@ -90,13 +90,13 @@ export function normalizePricingSetting(
       row.price_per_km,
       `${context}.price_per_km`
     ),
+    price_per_minute: parseRequiredNumber(
+      row.price_per_minute,
+      `${context}.price_per_minute`
+    ),
     minimum_fare: parseRequiredNumber(
       row.minimum_fare,
       `${context}.minimum_fare`
-    ),
-    schiphol_surcharge: parseRequiredNumber(
-      row.schiphol_surcharge,
-      `${context}.schiphol_surcharge`
     ),
     night_surcharge: parseRequiredNumber(
       row.night_surcharge,
@@ -161,33 +161,31 @@ export function findMatchingSpecialRate(params: {
 export function calculateDynamicPrice(params: {
   settings: PricingSetting;
   distanceKm: number;
+  durationMinutes: number;
   pickupHour?: number;
-  pickup: string;
-  destination: string;
 }): DynamicPricingResult {
-  const { settings, distanceKm, pickupHour, pickup, destination } = params;
+  const { settings, distanceKm, durationMinutes, pickupHour } = params;
 
   if (!Number.isFinite(distanceKm)) {
     throw new Error("pricing calculation failed: distanceKm is not a finite number");
   }
 
-  const lowerHaystack = `${pickup} ${destination}`.toLowerCase();
-  const isSchiphol =
-    lowerHaystack.includes("schiphol") ||
-    lowerHaystack.includes("airport") ||
-    lowerHaystack.includes("ams");
-
-  let total = settings.base_fare + distanceKm * settings.price_per_km;
-
-  if (isSchiphol) {
-    total += settings.schiphol_surcharge;
+  if (!Number.isFinite(durationMinutes) || durationMinutes < 0) {
+    throw new Error(
+      "pricing calculation failed: durationMinutes is not a valid number"
+    );
   }
+
+  let total =
+    settings.base_fare +
+    distanceKm * settings.price_per_km +
+    durationMinutes * settings.price_per_minute;
+
+  total = Math.max(total, settings.minimum_fare);
 
   if (typeof pickupHour === "number" && isNightRide(pickupHour)) {
     total += settings.night_surcharge;
   }
-
-  total = Math.max(total, settings.minimum_fare);
 
   if (!Number.isFinite(total)) {
     throw new Error("pricing calculation returned invalid total");
@@ -196,10 +194,12 @@ export function calculateDynamicPrice(params: {
   return {
     mode: "dynamic",
     distanceKm,
+    durationMinutes,
     total: Number(total.toFixed(2)),
     minimumFare: settings.minimum_fare,
     baseFare: settings.base_fare,
-    schipholApplied: isSchiphol,
+    pricePerKm: settings.price_per_km,
+    pricePerMinute: settings.price_per_minute,
     nightApplied:
       typeof pickupHour === "number" ? isNightRide(pickupHour) : false,
   };

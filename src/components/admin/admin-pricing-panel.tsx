@@ -75,7 +75,7 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
         id: tempId,
         from_label: "",
         to_label: "Schiphol",
-        vehicle_type: "auto",
+        vehicle_type: "auto" as VehicleType,
         fixed_price: 0,
         is_active: true,
         sort_order: ratesRef.current.length + 1,
@@ -112,8 +112,8 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
           .update({
             base_fare: setting.base_fare,
             price_per_km: setting.price_per_km,
+            price_per_minute: setting.price_per_minute,
             minimum_fare: setting.minimum_fare,
-            schiphol_surcharge: setting.schiphol_surcharge,
             night_surcharge: setting.night_surcharge,
             updated_at: new Date().toISOString(),
           })
@@ -189,6 +189,7 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
         </h2>
         <p className="mt-2 text-[#475569]">
           Deze instellingen worden gebruikt als er geen speciaal vast tarief gevonden wordt.
+          De geschatte ritprijs wordt vooraf berekend op basis van afstand en actuele reistijd.
         </p>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -349,14 +350,14 @@ function PricingCard({
           onChange={(value) => onChange("price_per_km", value)}
         />
         <NumberField
+          label="Prijs per minuut"
+          value={item.price_per_minute}
+          onChange={(value) => onChange("price_per_minute", value)}
+        />
+        <NumberField
           label="Minimumprijs"
           value={item.minimum_fare}
           onChange={(value) => onChange("minimum_fare", value)}
-        />
-        <NumberField
-          label="Schiphol toeslag"
-          value={item.schiphol_surcharge}
-          onChange={(value) => onChange("schiphol_surcharge", value)}
         />
         <NumberField
           label="Nachttoeslag"

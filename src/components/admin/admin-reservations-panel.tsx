@@ -291,7 +291,7 @@ function ReservationCard({
         <Info label="Passagiers" value={String(item.passengers)} />
         <Info label="Afstand" value={`${item.distance_km} km`} />
         <Info label="Reistijd" value={item.duration_text} />
-        <Info label="Prijs" value={`€ ${item.price_total}`} />
+        <Info label="Geschatte ritprijs" value={`€ ${item.price_total}`} />
       </div>
 
       <div className="mt-6 rounded-2xl border border-[#e2e8f0] bg-[#f8fafc] p-4">

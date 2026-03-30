@@ -4,8 +4,8 @@ export type PricingSetting = {
   vehicle_type: VehicleType;
   base_fare: number;
   price_per_km: number;
+  price_per_minute: number;
   minimum_fare: number;
-  schiphol_surcharge: number;
   night_surcharge: number;
 };
 
@@ -26,10 +26,12 @@ export type SpecialRate = {
 export type DynamicPricingResult = {
   mode: "dynamic";
   distanceKm: number;
+  durationMinutes: number;
   total: number;
   minimumFare: number;
   baseFare: number;
-  schipholApplied: boolean;
+  pricePerKm: number;
+  pricePerMinute: number;
   nightApplied: boolean;
 };
 
