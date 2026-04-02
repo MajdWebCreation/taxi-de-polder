@@ -4,26 +4,34 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Plane } from "lucide-react";
 import { SITE_WHATSAPP_URL } from "@/lib/site";
+import type { SpecialRate } from "@/types/pricing";
 
-const autoRates = [
-  { place: "Beverwijk", price: "€ 65" },
-  { place: "Heemskerk", price: "€ 70" },
-  { place: "Wijk aan Zee", price: "€ 80" },
-  { place: "Uitgeest", price: "€ 75" },
-  { place: "Assendelft", price: "€ 70" },
-  { place: "Velsen-Noord", price: "€ 65" },
-  { place: "Haarlem", price: "€ 80" },
-];
+type DisplayRate = {
+  place: string;
+  price: string;
+};
 
-const busRates = [
-  { place: "Beverwijk", price: "€ 90" },
-  { place: "Heemskerk", price: "€ 100" },
-  { place: "Wijk aan Zee", price: "€ 110" },
-  { place: "Uitgeest", price: "€ 110" },
-  { place: "Assendelft", price: "€ 100" },
-  { place: "Velsen-Noord", price: "€ 110" },
-  { place: "Haarlem", price: "€ 90" },
-];
+function formatPrice(value: number) {
+  return new Intl.NumberFormat("nl-NL", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function hasSchipholDestination(value: string) {
+  return value.toLocaleLowerCase("nl-NL").includes("schiphol");
+}
+
+function mapRatesForDisplay(rates: SpecialRate[]): DisplayRate[] {
+  return rates
+    .filter((rate) => rate.is_active && hasSchipholDestination(rate.to_label))
+    .map((rate) => ({
+      place: rate.from_label,
+      price: formatPrice(rate.fixed_price),
+    }));
+}
 
 function RateCard({
   title,
@@ -55,15 +63,21 @@ function RateCard({
       </div>
 
       <div className="mt-8 space-y-4">
-        {rates.map((rate) => (
-          <div
-            key={rate.place}
-            className="flex items-center justify-between border-b border-white/10 pb-4 text-base"
-          >
-            <span className="text-white/90">{rate.place}</span>
-            <span className="font-bold text-[#f4c542]">{rate.price}</span>
+        {rates.length > 0 ? (
+          rates.map((rate) => (
+            <div
+              key={`${title}-${rate.place}`}
+              className="flex items-center justify-between border-b border-white/10 pb-4 text-base"
+            >
+              <span className="text-white/90">{rate.place}</span>
+              <span className="font-bold text-[#f4c542]">{rate.price}</span>
+            </div>
+          ))
+        ) : (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+            Er zijn momenteel nog geen speciale Schiphol tarieven beschikbaar.
           </div>
-        ))}
+        )}
       </div>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -87,7 +101,14 @@ function RateCard({
   );
 }
 
-export function SchipholRatesSection() {
+export function SchipholRatesSection({ rates }: { rates: SpecialRate[] }) {
+  const autoRates = mapRatesForDisplay(
+    rates.filter((rate) => rate.vehicle_type === "auto")
+  );
+  const busRates = mapRatesForDisplay(
+    rates.filter((rate) => rate.vehicle_type === "busje")
+  );
+
   return (
     <section id="tarieven" className="bg-[#eef0ea] py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">

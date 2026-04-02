@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_noStore } from "next/cache";
 import { ContactSection } from "@/components/marketing/contact-section";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { MobileStickyBar } from "@/components/marketing/mobile-sticky-bar";
@@ -8,6 +9,7 @@ import { SchipholRatesSection } from "@/components/marketing/schiphol-rates-sect
 import { ServicesSection } from "@/components/marketing/services-section";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { WhyChooseSection } from "@/components/marketing/why-choose-section";
+import { getPricingData } from "@/features/pricing/service";
 import {
   HOME_DESCRIPTION,
   HOME_TITLE,
@@ -45,7 +47,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  unstable_noStore();
+
+  const { rates } = await getPricingData();
+
   const localBusinessJsonLd = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -88,7 +94,7 @@ export default function HomePage() {
         <HeroSection />
         <ReservationSection />
         <ServicesSection />
-        <SchipholRatesSection />
+        <SchipholRatesSection rates={rates} />
         <WhyChooseSection />
         <ContactSection />
       </main>
