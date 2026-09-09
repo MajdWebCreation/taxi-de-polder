@@ -33,7 +33,7 @@ export async function sendAdminReservationEmail(params: {
     to: [config.toEmail],
     replyTo: config.replyTo,
     subject: `Nieuwe reservering #${params.reservation.id} - ${params.reservation.customerName}`,
-    html: buildAdminReservationEmail({
+    ...buildAdminReservationEmail({
       reservation: params.reservation,
       appUrl: config.appUrl,
       actionToken: params.actionToken,
@@ -54,7 +54,7 @@ export async function sendCustomerPendingReservationEmail(
     to: [reservation.customerEmail],
     replyTo: config.replyTo,
     subject: `Uw reservering #${reservation.id} is ontvangen`,
-    html: buildCustomerPendingEmail(reservation),
+    ...buildCustomerPendingEmail(reservation),
   });
 
   if (result.error) {
@@ -78,7 +78,7 @@ export async function sendCustomerReservationStatusEmail(params: {
       params.status === "confirmed"
         ? `Uw reservering #${params.reservation.id} is bevestigd`
         : `Uw reservering #${params.reservation.id} is afgewezen`,
-    html: buildCustomerStatusEmail({
+    ...buildCustomerStatusEmail({
       reservation: params.reservation,
       status: params.status,
       adminNote: params.adminNote,
