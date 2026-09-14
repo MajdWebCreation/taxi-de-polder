@@ -1,4 +1,7 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  selectPricingSettings,
+  selectSpecialRates,
+} from "@/features/pricing/repository";
 import {
   calculateDynamicPrice,
   findMatchingSpecialRate,
@@ -11,25 +14,6 @@ import type {
   SpecialRate,
   VehicleType,
 } from "@/types/pricing";
-
-type RawPricingSettingRow = {
-  vehicle_type?: unknown;
-  base_fare?: unknown;
-  price_per_km?: unknown;
-  price_per_minute?: unknown;
-  minimum_fare?: unknown;
-  night_surcharge?: unknown;
-};
-
-type RawSpecialRateRow = {
-  id?: unknown;
-  from_label?: unknown;
-  to_label?: unknown;
-  vehicle_type?: unknown;
-  fixed_price?: unknown;
-  is_active?: unknown;
-  sort_order?: unknown;
-};
 
 export type PricingData = {
   settings: PricingSetting[];
@@ -46,36 +30,17 @@ export type ComputedPriceWithDebug = {
 };
 
 export async function getPricingData(): Promise<PricingData> {
-  const supabase = createAdminClient();
+  const [settings, rates] = await Promise.all([
+    selectPricingSettings(),
+    selectSpecialRates(),
+  ]);
 
-  const [{ data: settings, error: settingsError }, { data: rates, error: ratesError }] =
-    await Promise.all([
-      supabase
-        .from("pricing_settings")
-        .select("*")
-        .order("vehicle_type", { ascending: true }),
-      supabase
-        .from("special_rates")
-        .select("*")
-        .order("sort_order", { ascending: true })
-        .order("id", { ascending: true }),
-    ]);
-
-  if (settingsError) {
-    throw new Error(`pricing_settings fetch failed: ${settingsError.message}`);
-  }
-
-  if (ratesError) {
-    throw new Error(`special_rates fetch failed: ${ratesError.message}`);
-  }
-
-  const normalizedSettings = ((settings ?? []) as RawPricingSettingRow[]).map(
-    (row, index) =>
-      normalizePricingSetting(row, `pricing_settings[${index}]`)
+  const normalizedSettings = settings.map((row, index) =>
+    normalizePricingSetting(row, `pricing_settings[${index}]`)
   );
 
-  const normalizedRates = ((rates ?? []) as RawSpecialRateRow[]).map(
-    (row, index) => normalizeSpecialRate(row, `special_rates[${index}]`)
+  const normalizedRates = rates.map((row, index) =>
+    normalizeSpecialRate(row, `special_rates[${index}]`)
   );
 
   return {

@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Taxi De Polder
 
-## Getting Started
+Next.js 16 (App Router) website voor Taxi De Polder, gehost op Vercel met
+productiedomein **taxidepolder.nl**.
 
-First, run the development server:
+## Stack
+
+| Onderdeel | Keuze |
+| --- | --- |
+| Database | TiDB Cloud Starter (MySQL-compatibel) via `mysql2` |
+| Beheerderslogin | Eigen server-side sessies (scrypt + HttpOnly cookie) |
+| E-mail | Resend |
+| Route- en adresdata | Google Maps Platform (Routes API, Places API New) |
+
+De vorige Supabase-backend (database én auth) is volledig verwijderd.
+
+## Lokaal draaien
 
 ```bash
+npm install
+cp .env.example .env.local   # vul de waarden in
+npm run db:migrate           # schema + productiedata naar MySQL
+npm run admin:user create beheerder@taxidepolder.nl '<sterk-wachtwoord>'
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Database
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Het schema staat versiebeheerd in `db/migrations/` en wordt in bestandsvolgorde
+toegepast. De runner houdt in de tabel `schema_migrations` bij wat al gedraaid
+heeft, dus migreren is idempotent.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run db:status    # welke migraties open staan
+npm run db:migrate   # openstaande migraties toepassen
+```
 
-## Learn More
+Tabellen: `pricing_settings`, `special_rates`, `reservations`, `admin_users`,
+`admin_sessions`.
 
-To learn more about Next.js, take a look at the following resources:
+Alle databasetoegang loopt server-side via `src/lib/db/mysql.ts` (één pool per
+Node-proces) en de repositories in `src/features/*/repository.ts`. De browser
+praat nooit rechtstreeks met de database.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### TiDB Cloud
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Het publieke endpoint vereist TLS; `DB_SSL=true` valideert de certificaatketen
+tegen de CA-store van Node en controleert de hostnaam. Een eigen CA-bestand is
+niet nodig. De gebruikersnaam bevat altijd het clusterprefix (`<prefix>.root`).
 
-## Deploy on Vercel
+```bash
+npm run db:check   # TLS, versie, rechten, tijdzone, tabellen en rijaantallen
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Beheerders
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run admin:user list
+npm run admin:user create <email> <wachtwoord>
+npm run admin:user set-password <email> <wachtwoord>   # trekt sessies in
+npm run admin:user delete <email>
+```
+
+Wachtwoorden worden gehasht met scrypt (`N=2^15, r=8, p=1`). Sessies leven
+server-side in `admin_sessions`; de cookie bevat alleen een willekeurig token
+en de database uitsluitend de SHA-256 hash daarvan.
+
+## Controles
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```

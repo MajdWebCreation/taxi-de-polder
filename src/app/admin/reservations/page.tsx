@@ -3,7 +3,7 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminReservationsPanel } from "@/components/admin/admin-reservations-panel";
 import { AdminSignOutButton } from "@/components/admin/admin-sign-out-button";
 import { requireAdmin } from "@/features/auth/require-admin";
-import type { ReservationRecord } from "@/types/reservations";
+import { listReservations } from "@/features/reservations/service";
 
 export const metadata: Metadata = {
   title: "Admin reserveringen",
@@ -22,12 +22,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminReservationsPage() {
-  const { supabase, user } = await requireAdmin();
-
-  const { data: reservations } = await supabase
-    .from("reservations")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const admin = await requireAdmin();
+  const reservations = await listReservations();
 
   return (
     <main className="min-h-screen bg-[#f6f4ee] px-4 py-10">
@@ -40,7 +36,7 @@ export default async function AdminReservationsPage() {
             <h1 className="mt-2 text-3xl font-black text-[#0f1720]">
               Reserveringen
             </h1>
-            <p className="mt-2 text-[#475569]">Ingelogd als {user.email}</p>
+            <p className="mt-2 text-[#475569]">Ingelogd als {admin.email}</p>
           </div>
 
           <AdminSignOutButton />
@@ -48,9 +44,7 @@ export default async function AdminReservationsPage() {
 
         <AdminNav />
 
-        <AdminReservationsPanel
-          initialReservations={(reservations ?? []) as ReservationRecord[]}
-        />
+        <AdminReservationsPanel initialReservations={reservations} />
       </div>
     </main>
   );
