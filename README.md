@@ -7,7 +7,7 @@ productiedomein **taxidepolder.nl**.
 
 | Onderdeel | Keuze |
 | --- | --- |
-| Database | Hostinger MySQL via `mysql2` |
+| Database | TiDB Cloud Starter (MySQL-compatibel) via `mysql2` |
 | Beheerderslogin | Eigen server-side sessies (scrypt + HttpOnly cookie) |
 | E-mail | Resend |
 | Route- en adresdata | Google Maps Platform (Routes API, Places API New) |
@@ -42,10 +42,15 @@ Alle databasetoegang loopt server-side via `src/lib/db/mysql.ts` (één pool per
 Node-proces) en de repositories in `src/features/*/repository.ts`. De browser
 praat nooit rechtstreeks met de database.
 
-### Hostinger
+### TiDB Cloud
 
-Remote MySQL moet in hPanel aan staan (**Databases → Remote MySQL**) met
-toegestane host `%`, omdat Vercel geen vaste uitgaande IP-adressen heeft.
+Het publieke endpoint vereist TLS; `DB_SSL=true` valideert de certificaatketen
+tegen de CA-store van Node en controleert de hostnaam. Een eigen CA-bestand is
+niet nodig. De gebruikersnaam bevat altijd het clusterprefix (`<prefix>.root`).
+
+```bash
+npm run db:check   # TLS, versie, rechten, tijdzone, tabellen en rijaantallen
+```
 
 ## Beheerders
 

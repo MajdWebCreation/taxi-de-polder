@@ -17,7 +17,17 @@ function createPool(): mysql.Pool {
     database: config.database,
     user: config.user,
     password: config.password,
-    ssl: config.ssl ? { minVersion: "TLSv1.2" } : undefined,
+    // Echte TLS-validatie: mysql2 controleert standaard wel de
+    // certificaatketen (rejectUnauthorized), maar niet of de hostnaam bij het
+    // certificaat hoort. verifyIdentity zet die controle aan. De keten wordt
+    // geverifieerd tegen de CA-store van Node; geen eigen CA-bestand nodig.
+    ssl: config.ssl
+      ? {
+          minVersion: "TLSv1.2",
+          rejectUnauthorized: true,
+          verifyIdentity: true,
+        }
+      : undefined,
     waitForConnections: true,
     connectionLimit: config.connectionLimit,
     maxIdle: config.connectionLimit,

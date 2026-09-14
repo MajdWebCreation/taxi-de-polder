@@ -60,7 +60,7 @@ const connection = await mysql.createConnection({
   password: requireEnv("DB_PASSWORD"),
   ssl:
     process.env.DB_SSL?.trim().toLowerCase() === "true"
-      ? { minVersion: "TLSv1.2" }
+      ? { minVersion: "TLSv1.2", rejectUnauthorized: true, verifyIdentity: true }
       : undefined,
   timezone: "Z",
 });

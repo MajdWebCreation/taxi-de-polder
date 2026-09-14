@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs",
     "db:status": "node --env-file=.env.local scripts/db-migrate.mjs --status",
+    "db:check": "node --env-file=.env.local scripts/db-check.mjs",
     "admin:user": "node --env-file=.env.local scripts/admin-user.mjs"
   },
   "dependencies": {
