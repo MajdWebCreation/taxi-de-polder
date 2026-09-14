@@ -6,13 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node --env-file=.env.local scripts/db-migrate.mjs",
+    "db:status": "node --env-file=.env.local scripts/db-migrate.mjs --status",
+    "admin:user": "node --env-file=.env.local scripts/admin-user.mjs"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.9.0",
-    "@supabase/supabase-js": "^2.99.3",
     "framer-motion": "^12.37.0",
     "lucide-react": "^0.577.0",
+    "mysql2": "^3.24.4",
     "next": "16.1.7",
     "react": "19.2.3",
     "react-dom": "19.2.3",

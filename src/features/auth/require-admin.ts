@@ -1,31 +1,16 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAdminSession, type AdminSession } from "@/features/auth/session";
 
-export async function getAuthenticatedAdminUser() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  const { data: adminRow } = await supabase
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (!adminRow) {
-    return null;
-  }
-
-  return { supabase, user };
+/**
+ * Vervangt de vorige Supabase-controle (auth.getUser + admin_users lookup).
+ * Levert null op zodra er geen geldige server-side sessie is; API-routes
+ * vertalen dat naar 401, pagina's naar een redirect.
+ */
+export async function getAuthenticatedAdminUser(): Promise<AdminSession | null> {
+  return getAdminSession();
 }
 
-export async function requireAdmin() {
+export async function requireAdmin(): Promise<AdminSession> {
   const admin = await getAuthenticatedAdminUser();
 
   if (!admin) {

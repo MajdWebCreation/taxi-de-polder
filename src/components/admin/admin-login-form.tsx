@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/browser";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -17,15 +16,23 @@ export function AdminLoginForm() {
     setLoading(true);
     setErrorText("");
 
-    const supabase = createClient();
+    try {
+      const response = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      setErrorText(error.message);
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        setErrorText(data.error || "Inloggen mislukt.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      setErrorText("Inloggen mislukt. Controleer je verbinding.");
       setLoading(false);
       return;
     }

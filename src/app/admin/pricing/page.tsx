@@ -7,6 +7,10 @@ import {
   normalizePricingSetting,
   normalizeSpecialRate,
 } from "@/features/pricing/engine";
+import {
+  selectPricingSettings,
+  selectSpecialRates,
+} from "@/features/pricing/repository";
 import type { PricingSettingRecord, SpecialRate } from "@/types/pricing";
 
 export const metadata: Metadata = {
@@ -26,38 +30,22 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPricingPage() {
-  const { supabase, user } = await requireAdmin();
+  const admin = await requireAdmin();
 
-  const [{ data: settings }, { data: rates }] = await Promise.all([
-    supabase
-      .from("pricing_settings")
-      .select("*")
-      .order("vehicle_type", { ascending: true }),
-    supabase
-      .from("special_rates")
-      .select("*")
-      .order("sort_order", { ascending: true })
-      .order("id", { ascending: true }),
+  const [settings, rates] = await Promise.all([
+    selectPricingSettings(),
+    selectSpecialRates(),
   ]);
 
-  const normalizedSettings: PricingSettingRecord[] = ((settings ?? []) as Array<{
-    id?: unknown;
-    [key: string]: unknown;
-  }>).map((item, index) => ({
-    id: Number(item.id),
-    ...normalizePricingSetting(
-      item as Parameters<typeof normalizePricingSetting>[0],
-      `pricing_settings[${index}]`
-    ),
-  }));
+  const normalizedSettings: PricingSettingRecord[] = settings.map(
+    (item, index) => ({
+      id: Number(item.id),
+      ...normalizePricingSetting(item, `pricing_settings[${index}]`),
+    })
+  );
 
-  const normalizedRates: SpecialRate[] = ((rates ?? []) as Array<{
-    [key: string]: unknown;
-  }>).map((item, index) =>
-    normalizeSpecialRate(
-      item as Parameters<typeof normalizeSpecialRate>[0],
-      `special_rates[${index}]`
-    )
+  const normalizedRates: SpecialRate[] = rates.map((item, index) =>
+    normalizeSpecialRate(item, `special_rates[${index}]`)
   );
 
   return (
@@ -71,7 +59,7 @@ export default async function AdminPricingPage() {
             <h1 className="mt-2 text-3xl font-black text-[#0f1720]">
               Tarieven beheren
             </h1>
-            <p className="mt-2 text-[#475569]">Ingelogd als {user.email}</p>
+            <p className="mt-2 text-[#475569]">Ingelogd als {admin.email}</p>
           </div>
 
           <AdminSignOutButton />

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/browser";
 import type {
   PricingSettingRecord,
   SpecialRate,
@@ -20,8 +19,6 @@ type EditablePricingField = keyof Omit<
 type RateEditableField = Exclude<keyof SpecialRate, "id">;
 
 export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
-  const supabase = createClient();
-
   const [settings, setSettings] = useState<PricingSettingRecord[]>(
     initialSettings
   );
@@ -102,74 +99,21 @@ export function AdminPricingPanel({ initialSettings, initialRates }: Props) {
     setSaving(true);
     setMessage("");
 
-    const currentSettings = settingsRef.current;
-    const currentRates = ratesRef.current;
-
     try {
-      for (const setting of currentSettings) {
-        const { error } = await supabase
-          .from("pricing_settings")
-          .update({
-            base_fare: setting.base_fare,
-            price_per_km: setting.price_per_km,
-            price_per_minute: setting.price_per_minute,
-            minimum_fare: setting.minimum_fare,
-            night_surcharge: setting.night_surcharge,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", setting.id);
+      const response = await fetch("/api/admin/pricing", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          settings: settingsRef.current,
+          rates: ratesRef.current,
+        }),
+      });
 
-        if (error) throw error;
-      }
-
-      const existingIds = currentRates
-        .filter((item) => item.id > 0)
-        .map((item) => item.id);
-
-      if (existingIds.length > 0) {
-        const { error: deleteMissingError } = await supabase
-          .from("special_rates")
-          .delete()
-          .not("id", "in", `(${existingIds.join(",")})`);
-
-        if (deleteMissingError) throw deleteMissingError;
-      } else {
-        const { error: deleteAllError } = await supabase
-          .from("special_rates")
-          .delete()
-          .gte("id", 0);
-
-        if (deleteAllError) throw deleteAllError;
-      }
-
-      for (const rate of currentRates) {
-        if (rate.id > 0) {
-          const { error } = await supabase
-            .from("special_rates")
-            .update({
-              from_label: rate.from_label,
-              to_label: rate.to_label,
-              vehicle_type: rate.vehicle_type,
-              fixed_price: rate.fixed_price,
-              is_active: rate.is_active,
-              sort_order: rate.sort_order,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", rate.id);
-
-          if (error) throw error;
-        } else {
-          const { error } = await supabase.from("special_rates").insert({
-            from_label: rate.from_label,
-            to_label: rate.to_label,
-            vehicle_type: rate.vehicle_type,
-            fixed_price: rate.fixed_price,
-            is_active: rate.is_active,
-            sort_order: rate.sort_order,
-          });
-
-          if (error) throw error;
-        }
+      if (!response.ok) {
+        const data = (await response.json()) as { error?: string };
+        throw new Error(data.error || "Opslaan mislukt.");
       }
 
       setMessage("Opgeslagen.");

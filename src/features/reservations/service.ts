@@ -1,6 +1,16 @@
 import { getRouteQuoteFromGoogle } from "@/lib/google/routes";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { getComputedPrice } from "@/features/pricing/service";
+import {
+  deleteAllReservations as deleteAllReservationRows,
+  deleteReservation,
+  deleteReservationsByIds as deleteReservationRowsByIds,
+  insertReservation,
+  selectAllReservations,
+  selectReservationByActionToken,
+  selectReservationById,
+  updateReservationEmailTimestamp,
+  updateReservationStatus,
+} from "@/features/reservations/repository";
 import type {
   ReservationActionStatus,
   ReservationDecision,
@@ -49,37 +59,25 @@ export async function createReservation(input: ReservationRequestBody) {
   const priceTotal = Number(pricing.total);
   const pickupTime = `${input.pickupHour}:${input.pickupMinute}`;
   const actionToken = crypto.randomUUID();
-  const supabase = createAdminClient();
 
-  const { data, error } = await supabase
-    .from("reservations")
-    .insert({
-      status: "pending",
-      first_name: input.firstName,
-      last_name: input.lastName,
-      email: input.email,
-      phone: input.phone,
-      pickup: input.pickup,
-      destination: input.destination,
-      pickup_date: input.pickupDate,
-      pickup_time: pickupTime,
-      passengers: Number(input.passengers),
-      vehicle_type: input.vehicle,
-      notes: input.notes || null,
-      distance_km: route.distanceKm,
-      duration_text: route.durationText,
-      price_total: priceTotal,
-      pricing_mode: pricing.mode,
-      action_token: actionToken,
-    })
-    .select("*")
-    .single();
-
-  if (error || !data) {
-    throw new Error(error?.message || "Reservering opslaan mislukt.");
-  }
-
-  const reservation = data as ReservationRecord;
+  const reservation = await insertReservation({
+    first_name: input.firstName,
+    last_name: input.lastName,
+    email: input.email,
+    phone: input.phone,
+    pickup: input.pickup,
+    destination: input.destination,
+    pickup_date: input.pickupDate,
+    pickup_time: pickupTime,
+    passengers: Number(input.passengers),
+    vehicle_type: input.vehicle,
+    notes: input.notes || null,
+    distance_km: route.distanceKm,
+    duration_text: route.durationText,
+    price_total: priceTotal,
+    pricing_mode: pricing.mode,
+    action_token: actionToken,
+  });
 
   return {
     reservation,
@@ -110,34 +108,16 @@ function buildStatusUpdate(
   };
 }
 
+export async function listReservations() {
+  return selectAllReservations();
+}
+
 export async function getReservationById(id: number) {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("reservations")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !data) {
-    return null;
-  }
-
-  return data as ReservationRecord;
+  return selectReservationById(id);
 }
 
 export async function getReservationByActionToken(token: string) {
-  const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("reservations")
-    .select("*")
-    .eq("action_token", token)
-    .single();
-
-  if (error || !data) {
-    return null;
-  }
-
-  return data as ReservationRecord;
+  return selectReservationByActionToken(token);
 }
 
 export async function updateReservationStatusById(params: {
@@ -145,7 +125,6 @@ export async function updateReservationStatusById(params: {
   status: ReservationActionStatus;
   adminNote?: string;
 }) {
-  const supabase = createAdminClient();
   const reservation = await getReservationById(params.id);
 
   if (!reservation) {
@@ -155,14 +134,8 @@ export async function updateReservationStatusById(params: {
   const nowIso = new Date().toISOString();
   const adminNote = params.adminNote?.trim() || null;
   const payload = buildStatusUpdate(params.status, adminNote, nowIso);
-  const { error } = await supabase
-    .from("reservations")
-    .update(payload)
-    .eq("id", reservation.id);
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  await updateReservationStatus(reservation.id, payload);
 
   return {
     reservation: {
@@ -179,7 +152,6 @@ export async function updateReservationStatusByActionToken(params: {
   token: string;
   decision: ReservationDecision;
 }) {
-  const supabase = createAdminClient();
   const reservation = await getReservationByActionToken(params.token);
 
   if (!reservation) {
@@ -191,14 +163,7 @@ export async function updateReservationStatusByActionToken(params: {
     params.decision === "confirm" ? "confirmed" : "rejected";
   const payload = buildStatusUpdate(status, reservation.admin_note, nowIso);
 
-  const { error } = await supabase
-    .from("reservations")
-    .update(payload)
-    .eq("id", reservation.id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  await updateReservationStatus(reservation.id, payload);
 
   return {
     reservation: {
@@ -212,18 +177,13 @@ export async function updateReservationStatusByActionToken(params: {
 }
 
 export async function deleteReservationById(id: number) {
-  const supabase = createAdminClient();
   const reservation = await getReservationById(id);
 
   if (!reservation) {
     return null;
   }
 
-  const { error } = await supabase.from("reservations").delete().eq("id", id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  await deleteReservation(id);
 
   return reservation;
 }
@@ -233,55 +193,29 @@ export async function deleteReservationsByIds(ids: number[]) {
     return { deletedCount: 0 };
   }
 
-  const supabase = createAdminClient();
-  const { error, count } = await supabase
-    .from("reservations")
-    .delete({ count: "exact" })
-    .in("id", ids);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
   return {
-    deletedCount: count ?? 0,
+    deletedCount: await deleteReservationRowsByIds(ids),
   };
 }
 
 export async function deleteAllReservations() {
-  const supabase = createAdminClient();
-  const { error, count } = await supabase
-    .from("reservations")
-    .delete({ count: "exact" })
-    .not("id", "is", null);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
   return {
-    deletedCount: count ?? 0,
+    deletedCount: await deleteAllReservationRows(),
   };
 }
 
 export async function markCustomerPendingEmailSent(id: number, timestamp: string) {
-  const supabase = createAdminClient();
-  await supabase
-    .from("reservations")
-    .update({
-      customer_email_sent_at: timestamp,
-      updated_at: timestamp,
-    })
-    .eq("id", id);
+  await updateReservationEmailTimestamp({
+    id,
+    column: "customer_email_sent_at",
+    timestamp,
+  });
 }
 
 export async function markStatusEmailSent(id: number, timestamp: string) {
-  const supabase = createAdminClient();
-  await supabase
-    .from("reservations")
-    .update({
-      status_email_sent_at: timestamp,
-      updated_at: timestamp,
-    })
-    .eq("id", id);
+  await updateReservationEmailTimestamp({
+    id,
+    column: "status_email_sent_at",
+    timestamp,
+  });
 }
