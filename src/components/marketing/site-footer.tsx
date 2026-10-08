@@ -88,17 +88,9 @@ export function SiteFooter() {
             target="_blank"
             rel="noreferrer"
             aria-label="Bezoek de website van YM Creations"
-            className="group inline-flex items-center gap-3 rounded-full border border-white/15 bg-black/10 px-3 py-2 text-sm text-white/80 transition hover:border-[#f4c542]/50 hover:bg-black/20 hover:text-white"
+            className="text-xs text-white/45 transition hover:text-white/80"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/20 text-[0.7rem] font-semibold tracking-[0.28em] text-[#f4c542] shadow-[0_0_20px_rgba(0,0,0,0.18)] transition group-hover:scale-105 group-hover:border-[#f4c542]/60">
-              YM
-            </span>
-            <span className="text-left leading-tight">
-              <span className="block text-[0.65rem] uppercase tracking-[0.22em] text-white/50">
-                Made by
-              </span>
-              <span className="block font-medium text-white">YM Creations</span>
-            </span>
+            Made by YM Creations
           </a>
         </div>
       </div>
