@@ -1,7 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { ShieldCheck, Clock3, PhoneCall, Star } from "lucide-react";
+import { Reveal } from "@/components/motion/reveal";
 import { SITE_PHONE_DISPLAY, SITE_PHONE_TEL, SITE_WHATSAPP_URL } from "@/lib/site";
 
 const points = [
@@ -31,11 +29,8 @@ export function WhyChooseSection() {
   return (
     <section className="bg-[#f6f4ee] py-20">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 md:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 22 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
+        <Reveal
+          y={22}
         >
           <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#0d5b4f]">
             Waarom Taxi De Polder
@@ -56,12 +51,11 @@ export function WhyChooseSection() {
               const Icon = point.icon;
 
               return (
-                <motion.div
+                <Reveal
                   key={point.title}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.45, delay: index * 0.08 }}
+                  y={18}
+                  duration={0.45}
+                  delay={index * 0.08}
                   className="rounded-[1.5rem] border border-[#0d5b4f]/10 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,32,0.05)]"
                 >
                   <Icon className="h-6 w-6 text-[#0d5b4f]" />
@@ -71,17 +65,14 @@ export function WhyChooseSection() {
                   <p className="mt-2 text-sm leading-7 text-[#475569]">
                     {point.text}
                   </p>
-                </motion.div>
+                </Reveal>
               );
             })}
           </div>
-        </motion.div>
+        </Reveal>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
+        <Reveal
+          scale={0.98}
           className="rounded-[2rem] bg-[#8a4b00] p-8 text-white shadow-[0_20px_60px_rgba(0,0,0,0.12)]"
         >
           <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#f4c542]">
@@ -122,7 +113,7 @@ export function WhyChooseSection() {
           >
             Start WhatsApp gesprek
           </a>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

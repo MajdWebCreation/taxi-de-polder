@@ -1,8 +1,6 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { ShieldCheck, Clock3, Plane } from "lucide-react";
+import { enterStyle } from "@/components/motion/enter-style";
 
 const features = [
   {
@@ -26,12 +24,7 @@ export function HeroSection() {
       <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(to_right,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)]" />
 
       <div className="relative mx-auto grid min-h-[92vh] max-w-7xl items-center gap-12 px-4 py-14 md:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-20">
-        <motion.div
-          initial={{ opacity: 0, y: 26 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65 }}
-          className="max-w-2xl"
-        >
+        <div className="enter max-w-2xl" style={enterStyle({ y: 26, duration: 0.65 })}>
           <span className="inline-flex rounded-full border border-[#f4c542]/30 bg-[#f4c542]/10 px-4 py-1 text-sm font-semibold text-[#f4c542]">
             Vaste tarieven • Professionele service
           </span>
@@ -78,13 +71,11 @@ export function HeroSection() {
               );
             })}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 18 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="relative"
+        <div
+          className="enter relative"
+          style={enterStyle({ scale: 0.96, y: 18, duration: 0.7, delay: 0.1 })}
         >
           <div className="relative mx-auto rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#127262] via-[#0f5e53] to-[#083b34] p-6 shadow-2xl shadow-black/30">
             <div className="absolute inset-5 rounded-[1.6rem] border border-[#f4c542]/15" />
@@ -96,6 +87,7 @@ export function HeroSection() {
                     src="/logo-taxi-de-polder.png"
                     alt="Taxi De Polder logo"
                     fill
+                    sizes="160px"
                     className="object-contain drop-shadow-[0_16px_35px_rgba(0,0,0,0.3)]"
                     priority
                   />
@@ -107,6 +99,7 @@ export function HeroSection() {
                   src="/auto1.png"
                   alt="Taxi De Polder auto"
                   fill
+                  sizes="330px"
                   className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.35)]"
                   priority
                 />
@@ -127,7 +120,7 @@ export function HeroSection() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

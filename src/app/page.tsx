@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { unstable_noStore } from "next/cache";
 import { ContactSection } from "@/components/marketing/contact-section";
 import { HeroSection } from "@/components/marketing/hero-section";
 import { MobileStickyBar } from "@/components/marketing/mobile-sticky-bar";
@@ -20,6 +19,14 @@ import {
   SITE_URL,
   SITE_WHATSAPP_URL,
 } from "@/lib/site";
+
+/**
+ * De homepage wordt statisch gerenderd en vanaf de CDN geserveerd, in plaats
+ * van per bezoek een serverless functie plus TiDB-query af te wachten. Na
+ * opslaan in /admin/pricing ververst `revalidatePath("/")` de pagina direct;
+ * dit interval vangt alleen wijzigingen buiten het beheerpaneel om op.
+ */
+export const revalidate = 600;
 
 export const metadata: Metadata = {
   title: HOME_TITLE,
@@ -48,8 +55,6 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  unstable_noStore();
-
   const { rates } = await getPricingData();
 
   const localBusinessJsonLd = {

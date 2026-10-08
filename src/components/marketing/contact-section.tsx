@@ -1,18 +1,13 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Phone, MessageCircle, ChevronRight } from "lucide-react";
+import { Reveal } from "@/components/motion/reveal";
 import { SITE_PHONE_DISPLAY, SITE_PHONE_TEL, SITE_WHATSAPP_URL } from "@/lib/site";
 
 export function ContactSection() {
   return (
     <section id="contact" className="bg-[#0b4f45] py-20 text-white">
       <div className="mx-auto max-w-6xl px-4 md:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 22 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
+        <Reveal
+          y={22}
           className="grid gap-8 rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-sm sm:p-8 lg:grid-cols-[1.05fr_0.95fr]"
         >
           <div>
@@ -85,7 +80,7 @@ export function ContactSection() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </Reveal>
       </div>
     </section>
   );

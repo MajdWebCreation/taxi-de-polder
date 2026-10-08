@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthenticatedAdminUser } from "@/features/auth/require-admin";
 import {
@@ -108,6 +109,9 @@ export async function PUT(request: NextRequest) {
 
   try {
     await savePricing({ settings, rates });
+
+    // De homepage toont de Schiphol-tarieven en is statisch gecachet.
+    revalidatePath("/");
 
     return NextResponse.json({ success: true });
   } catch (error) {

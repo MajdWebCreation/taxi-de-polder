@@ -1,7 +1,5 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Plane, Briefcase, Clock3, CarFront } from "lucide-react";
+import { Reveal } from "@/components/motion/reveal";
 
 const services = [
   {
@@ -34,11 +32,9 @@ export function ServicesSection() {
   return (
     <section id="diensten" className="bg-[#f6f4ee] py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 22 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.55 }}
+        <Reveal
+          y={22}
+          amount={0.3}
           className="mx-auto max-w-3xl text-center"
         >
           <p className="text-sm font-bold uppercase tracking-[0.25em] text-[#0d5b4f]">
@@ -51,19 +47,18 @@ export function ServicesSection() {
             Taxi De Polder biedt betrouwbare service voor luchthavenvervoer,
             zakelijke ritten en comfortabele lokale ritten in de regio.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {services.map((service, index) => {
             const Icon = service.icon;
 
             return (
-              <motion.div
+              <Reveal
                 key={service.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.55, delay: index * 0.08 }}
+                y={24}
+                amount={0.2}
+                delay={index * 0.08}
                 className="rounded-[1.75rem] border border-[#0d5b4f]/10 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,32,0.06)] transition hover:-translate-y-1"
               >
                 <div className="inline-flex rounded-2xl bg-[#0d5b4f] p-3 text-[#f4c542]">
@@ -77,7 +72,7 @@ export function ServicesSection() {
                 <p className="mt-3 text-[15px] leading-7 text-[#475569]">
                   {service.description}
                 </p>
-              </motion.div>
+              </Reveal>
             );
           })}
         </div>

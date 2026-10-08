@@ -20,6 +20,7 @@ export function SiteFooter() {
                 src="/logo-taxi-de-polder.png"
                 alt="Taxi De Polder logo"
                 fill
+                sizes="40px"
                 className="object-contain p-1"
               />
             </div>

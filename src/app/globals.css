@@ -22,3 +22,33 @@ body {
 img {
   user-select: none;
 }
+/*
+ * Instap-animaties zonder JavaScript. `.enter` speelt direct bij de eerste
+ * paint (hero, navbar), `.reveal` staat gepauzeerd op het beginframe tot
+ * <Reveal> hem in beeld zet. Doordat alleen de animatie de beginwaarden
+ * levert, blijven hover-transforms en `transition`-utilities ongemoeid.
+ */
+@keyframes enter-from {
+  from {
+    opacity: 0;
+    translate: var(--enter-x, 0) var(--enter-y, 0);
+    scale: var(--enter-scale, 1);
+  }
+}
+
+.enter,
+.reveal {
+  animation: enter-from var(--enter-duration, 0.55s)
+    cubic-bezier(0.42, 0, 0.58, 1) var(--enter-delay, 0s) backwards;
+}
+
+.reveal:not([data-visible]) {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .reveal {
+    animation: none;
+  }
+}

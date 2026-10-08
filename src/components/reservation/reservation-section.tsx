@@ -990,7 +990,7 @@ function VehicleCard({
       ].join(" ")}
     >
       <div className="relative h-[130px] w-full">
-        <Image src={imageSrc} alt={imageAlt} fill className="object-contain" />
+        <Image src={imageSrc} alt={imageAlt} fill sizes="195px" className="object-contain" />
       </div>
 
       <div className="flex flex-col justify-center">

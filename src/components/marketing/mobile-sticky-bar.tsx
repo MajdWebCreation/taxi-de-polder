@@ -1,5 +1,3 @@
-"use client";
-
 import { MessageCircle, CalendarCheck } from "lucide-react";
 
 export function MobileStickyBar() {

@@ -1,8 +1,6 @@
-"use client";
-
 import Image from "next/image";
-import { motion } from "framer-motion";
 import { Plane } from "lucide-react";
+import { Reveal } from "@/components/motion/reveal";
 import { SITE_WHATSAPP_URL } from "@/lib/site";
 import type { SpecialRate } from "@/types/pricing";
 
@@ -58,6 +56,7 @@ function RateCard({
           src={imageSrc}
           alt={imageAlt}
           fill
+          sizes="255px"
           className="object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] transition duration-300 group-hover:scale-[1.02]"
         />
       </div>
@@ -112,11 +111,8 @@ export function SchipholRatesSection({ rates }: { rates: SpecialRate[] }) {
   return (
     <section id="tarieven" className="bg-[#eef0ea] py-20">
       <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 22 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
+        <Reveal
+          y={22}
           className="text-center"
         >
           <div className="inline-flex items-center gap-2 rounded-full bg-[#0d5b4f]/10 px-4 py-2 text-sm font-semibold text-[#0d5b4f]">
@@ -132,14 +128,11 @@ export function SchipholRatesSection({ rates }: { rates: SpecialRate[] }) {
             Voor populaire routes naar Schiphol werken wij met duidelijke vaste tarieven
             voor zowel een auto als een busje.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-2">
-          <motion.div
-            initial={{ opacity: 0, x: -18 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
+          <Reveal
+            x={-18}
           >
             <RateCard
               title="Auto"
@@ -147,13 +140,10 @@ export function SchipholRatesSection({ rates }: { rates: SpecialRate[] }) {
               imageAlt="Taxi De Polder auto"
               rates={autoRates}
             />
-          </motion.div>
+          </Reveal>
 
-          <motion.div
-            initial={{ opacity: 0, x: 18 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
+          <Reveal
+            x={18}
           >
             <RateCard
               title="Busje"
@@ -161,7 +151,7 @@ export function SchipholRatesSection({ rates }: { rates: SpecialRate[] }) {
               imageAlt="Taxi De Polder busje"
               rates={busRates}
             />
-          </motion.div>
+          </Reveal>
         </div>
       </div>
     </section>
