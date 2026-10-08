@@ -24,7 +24,10 @@ export function HeroSection() {
       <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(to_right,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)]" />
 
       <div className="relative mx-auto grid min-h-[92vh] max-w-7xl items-center gap-12 px-4 py-14 md:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-20">
-        <div className="enter max-w-2xl" style={enterStyle({ y: 26, duration: 0.65 })}>
+        <div
+          className="enter max-w-2xl"
+          style={enterStyle({ y: 26, duration: 0.65, fade: false })}
+        >
           <span className="inline-flex rounded-full border border-[#f4c542]/30 bg-[#f4c542]/10 px-4 py-1 text-sm font-semibold text-[#f4c542]">
             Vaste tarieven • Professionele service
           </span>
